@@ -3,3 +3,5 @@ dist
 .playwright-cli
 .DS_Store
 *.local
+.openai/*.tgz
+.openai/package-stage*
