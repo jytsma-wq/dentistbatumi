@@ -109,7 +109,7 @@ function App() {
           </div>
 
           <div className="hero-image">
-            <img src="/assets/marea-batumi-hero.png" alt="Zelfverzekerde vrouw op een terras aan de Zwarte Zee in Batumi" />
+            <img src="/assets/marea-batumi-hero.webp" alt="Zelfverzekerde vrouw op een terras aan de Zwarte Zee in Batumi" />
             <div className="hero-photo-overlay" />
             <div className="availability-pill"><span className="pulse" />{t.availability}</div>
             <div className="hero-location"><Globe2 size={18} /><span>{t.location}</span></div>
@@ -229,7 +229,7 @@ function App() {
 
         <section className="batumi" aria-labelledby="batumi-title">
           <div className="batumi-photo">
-            <img src="/assets/marea-batumi-hero.png" alt="Uitzicht over de kustlijn en moderne architectuur van Batumi" />
+            <img src="/assets/marea-batumi-hero.webp" alt="Uitzicht over de kustlijn en moderne architectuur van Batumi" />
             <div className="batumi-word" aria-hidden="true">BATUMI</div>
           </div>
           <div className="batumi-copy">
