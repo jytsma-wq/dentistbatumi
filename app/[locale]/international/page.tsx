@@ -8,6 +8,7 @@ import {
 import { siteCopy } from "../../content";
 import { isLocale } from "../../locales";
 import { createLocalizedMetadata } from "../../metadata";
+import { medicalUploadCopy } from "../../upload-content";
 
 export async function generateMetadata({
   params,
@@ -33,6 +34,7 @@ export default async function InternationalPatientsPage({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const copy = siteCopy[locale];
+  const upload = medicalUploadCopy[locale];
 
   return (
     <>
@@ -58,6 +60,27 @@ export default async function InternationalPatientsPage({
               </div>
             </article>
           ))}
+        </div>
+      </section>
+      <section className="international-upload section-shell">
+        <div className="international-upload-mark" aria-hidden="true">
+          <span>DX</span>
+          <i />
+          <i />
+        </div>
+        <div>
+          <span className="eyebrow">{upload.eyebrow}</span>
+          <h2>{upload.title}</h2>
+          <p>{upload.lead}</p>
+          <small>{upload.whatsappWarning}</small>
+          <button
+            className="button button-dark"
+            data-upload
+            type="button"
+          >
+            {upload.trigger}
+            <span aria-hidden="true">→</span>
+          </button>
         </div>
       </section>
       <section className="twenty-one-manifesto">

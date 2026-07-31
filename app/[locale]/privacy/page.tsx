@@ -4,6 +4,7 @@ import { PageHero } from "../../components/PageElements";
 import { isLocale } from "../../locales";
 import { createLocalizedMetadata } from "../../metadata";
 import { privacyContent } from "../../privacy-content";
+import { medicalUploadCopy } from "../../upload-content";
 
 export async function generateMetadata({
   params,
@@ -29,6 +30,14 @@ export default async function PrivacyPage({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const content = privacyContent[locale];
+  const upload = medicalUploadCopy[locale];
+  const sections = [
+    ...content.sections,
+    {
+      title: upload.privacy.sectionTitle,
+      text: upload.privacy.sectionText,
+    },
+  ];
 
   return (
     <>
@@ -39,8 +48,11 @@ export default async function PrivacyPage({
         marker="P"
       />
       <section className="privacy-grid section-shell">
-        {content.sections.map((section, index) => (
-          <article key={section.title}>
+        {sections.map((section, index) => (
+          <article
+            id={index === sections.length - 1 ? "clinical-upload" : undefined}
+            key={section.title}
+          >
             <span>{String(index + 1).padStart(2, "0")}</span>
             <h2>{section.title}</h2>
             <p>{section.text}</p>

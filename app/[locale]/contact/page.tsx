@@ -5,6 +5,7 @@ import { siteCopy } from "../../content";
 import { isLocale } from "../../locales";
 import { siteConfig } from "../../site-config";
 import { createLocalizedMetadata } from "../../metadata";
+import { medicalUploadCopy } from "../../upload-content";
 
 export async function generateMetadata({
   params,
@@ -30,6 +31,7 @@ export default async function ContactPage({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const copy = siteCopy[locale];
+  const upload = medicalUploadCopy[locale];
 
   return (
     <>
@@ -65,6 +67,17 @@ export default async function ContactPage({
             )}
           </article>
         ))}
+      </section>
+      <section className="contact-upload-band section-shell">
+        <div>
+          <span className="eyebrow">{upload.eyebrow}</span>
+          <h2>{upload.title}</h2>
+          <p>{upload.whatsappWarning}</p>
+        </div>
+        <button className="button button-dark" data-upload type="button">
+          {upload.trigger}
+          <span aria-hidden="true">→</span>
+        </button>
       </section>
       <section className="contact-map">
         <div className="map-art" aria-hidden="true">

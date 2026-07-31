@@ -19,12 +19,14 @@ type BookingExperienceProps = {
   children: ReactNode;
   copy: SiteCopy;
   whatsappNumber: string;
+  uploadLabel: string;
 };
 
 export function BookingExperience({
   children,
   copy,
   whatsappNumber,
+  uploadLabel,
 }: BookingExperienceProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [intent, setIntent] = useState<Intent>("local");
@@ -385,6 +387,26 @@ export function BookingExperience({
               </label>
 
               <p className="privacy-note">{copy.booking.privacy}</p>
+
+              {intent === "international" && (
+                <button
+                  className="booking-upload-link"
+                  type="button"
+                  onClick={() => {
+                    closeDialog();
+                    window.setTimeout(
+                      () =>
+                        window.dispatchEvent(
+                          new Event("marea:open-upload"),
+                        ),
+                      0,
+                    );
+                  }}
+                >
+                  <span aria-hidden="true">＋</span>
+                  {uploadLabel}
+                </button>
+              )}
 
               <button className="button button-dark button-wide" type="submit">
                 {copy.booking.review}

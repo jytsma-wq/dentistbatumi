@@ -4,6 +4,7 @@ import type { Locale } from "../locales";
 import type { SiteCopy } from "../content";
 import { siteConfig } from "../site-config";
 import { privacyContent } from "../privacy-content";
+import { medicalUploadCopy } from "../upload-content";
 
 export function SiteFooter({
   locale,
@@ -35,6 +36,9 @@ export function SiteFooter({
           <Link href={`/${locale}/privacy`}>
             {privacyContent[locale].link}
           </Link>
+          <Link href={`/${locale}/upload`}>
+            {medicalUploadCopy[locale].link}
+          </Link>
         </div>
         <div>
           <h3>{copy.footer.contact}</h3>
@@ -59,6 +63,9 @@ export function SiteFooter({
           )}
           <button data-booking type="button">
             {copy.actions.appointment}
+          </button>
+          <button data-upload type="button">
+            {medicalUploadCopy[locale].trigger}
           </button>
           {!siteConfig.whatsappNumber &&
             !siteConfig.phone &&

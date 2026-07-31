@@ -11,10 +11,6 @@ export const metadata: Metadata = {
   description:
     "Een tandartskliniek in Batumi voor lokale en internationale patiënten, met heldere behandelplanning en een zorgvuldig 21-dagentraject waar medisch verantwoord.",
   applicationName: "Marea Dental",
-  icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
-  },
   openGraph: {
     type: "website",
     siteName: "Marea Dental",
@@ -43,6 +39,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon.ico" />
+      </head>
       <body>{children}</body>
     </html>
   );

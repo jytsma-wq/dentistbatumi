@@ -100,10 +100,10 @@ export const privacyContent: Record<Locale, PrivacyContent> = {
       {
         title: "Vor dem öffentlichen Start",
         text:
-          "Verifizierte Rechtsperson und Verantwortlicher, Kontaktdaten, Auftragsverarbeiter, Speicherfristen, Patientenrechte und ein geeigneter sicherer Intake-Weg müssen ergänzt werden, bevor echte Patientendaten angenommen werden.",
+          "Verifizierte Rechtsperson und Verantwortlicher, Kontaktdaten, Auftragsverarbeiter, Speicherfristen, Patientenrechte und ein geeigneter Übermittlungsweg müssen ergänzt werden, bevor echte Patientendaten angenommen werden.",
       },
     ],
-    noteTitle: "Keine Diagnose oder bestätigte Buchung",
+    noteTitle: "Keine Diagnose oder Terminbestätigung",
     noteText:
       "Die Website bietet allgemeine Informationen. Ein Termin besteht erst nach Bestätigung durch die Klinik; Behandlungsentscheidungen folgen nach klinischer Untersuchung vor Ort.",
   },
@@ -164,12 +164,12 @@ export const privacyContent: Record<Locale, PrivacyContent> = {
       {
         title: "Virum ëffentleche Start",
         text:
-          "Déi verifizéiert juristesch Identitéit, de Verantwortlechen, Kontaktdonnéeën, Déngschtleeschter, Späicherfristen, Patientenrechter an e passende sécheren Intake-Wee musse virun der Notzung mat echte Patientendonnéeën ergänzt ginn.",
+          "Déi verifizéiert juristesch Identitéit, de Verantwortleche fir d’Dateveraarbechtung, Kontaktdonnéeën, Déngschtleeschter, Späicherfristen, Patientenrechter an e passenden Iwwerdroungswee musse virun der Notzung mat echte Patientendonnéeën ergänzt ginn.",
       },
     ],
-    noteTitle: "Keng Diagnos oder confirméiert Buchung",
+    noteTitle: "Keng Diagnos a keng Bestätegung vun engem Rendez-vous",
     noteText:
-      "D’Website gëtt allgemeng Informatiounen. E Rendez-vous besteet eréischt no der Confirmatioun vun der Klinik; Behandlungsentscheedunge folgen no enger klinescher Ënnersichung op der Plaz.",
+      "D’Website gëtt allgemeng Informatiounen. E Rendez-vous besteet eréischt no der Confirmatioun vun der Klinik; Behandlungsentscheedunge ginn no enger klinescher Ënnersichung op der Plaz getraff.",
   },
   ka: {
     link: "კონფიდენციალურობა",

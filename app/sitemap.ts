@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "local",
     "international",
     "contact",
+    "upload",
     "privacy",
   ];
 

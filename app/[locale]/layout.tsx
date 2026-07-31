@@ -27,10 +27,6 @@ export async function generateMetadata({
     },
     description: copy.hero.lead,
     applicationName: "Marea Dental",
-    icons: {
-      icon: "/favicon.svg",
-      shortcut: "/favicon.svg",
-    },
     openGraph: {
       type: "website",
       siteName: "Marea Dental",
@@ -63,6 +59,10 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale}>
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon.ico" />
+      </head>
       <body>
         <div
           lang={locale}
