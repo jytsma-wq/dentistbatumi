@@ -12,6 +12,15 @@ export function SiteHeader({
   locale: Locale;
   copy: SiteCopy;
 }) {
+  const locationLabel: Record<Locale, string> = {
+    en: "Batumi · Georgia",
+    nl: "Batumi · Georgië",
+    de: "Batumi · Georgien",
+    fr: "Batoumi · Géorgie",
+    lb: "Batumi · Georgien",
+    ka: "ბათუმი · საქართველო",
+  };
+
   const navItems = [
     ["treatments", copy.nav.treatments],
     ["results", copy.nav.results],
@@ -24,7 +33,7 @@ export function SiteHeader({
   return (
     <header className="site-header">
       <div className="utility-bar">
-        <span>Batumi · საქართველო</span>
+        <span>{locationLabel[locale]}</span>
         <span>{copy.utility}</span>
       </div>
       <div className="nav-shell">
