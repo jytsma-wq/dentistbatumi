@@ -18,6 +18,12 @@ import {
   type UploadErrorCode,
 } from "../upload-content";
 import { clinicalUploadConfig } from "../upload-config";
+import {
+  beginDialogSession,
+  cancelDialog,
+  finishDialogSession,
+  type FocusTarget,
+} from "./ui-interactions";
 
 type UploadState = "idle" | "uploading" | "checking" | "success" | "deleted";
 type CopyState = "reference" | "contact" | "error" | null;
@@ -62,7 +68,7 @@ export function MedicalUploadExperience({
   const successHeadingRef = useRef<HTMLHeadingElement>(null);
   const deletedHeadingRef = useRef<HTMLHeadingElement>(null);
   const uploadAbortRef = useRef<AbortController | null>(null);
-  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const returnFocusRef = useRef<FocusTarget | null>(null);
   const startedAtRef = useRef(0);
   const [files, setFiles] = useState<File[]>([]);
   const [state, setState] = useState<UploadState>("idle");
@@ -102,8 +108,18 @@ export function MedicalUploadExperience({
   const openDialog = useCallback(
     (trigger?: HTMLElement | null) => {
       resetExperience();
-      returnFocusRef.current = trigger ?? null;
-      dialogRef.current?.showModal();
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const activeElement =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      returnFocusRef.current = beginDialogSession(
+        dialog,
+        document,
+        trigger,
+        activeElement,
+      );
     },
     [resetExperience],
   );
@@ -131,21 +147,15 @@ export function MedicalUploadExperience({
     if (!dialog) return;
 
     const handleClose = () => {
-      document.body.classList.remove("dialog-open");
-      resetExperience();
-      returnFocusRef.current?.focus();
+      finishDialogSession(document, returnFocusRef.current);
       returnFocusRef.current = null;
+      resetExperience();
     };
-    const observer = new MutationObserver(() => {
-      if (dialog.open) document.body.classList.add("dialog-open");
-    });
-    observer.observe(dialog, { attributes: true, attributeFilter: ["open"] });
     dialog.addEventListener("close", handleClose);
 
     return () => {
-      observer.disconnect();
       dialog.removeEventListener("close", handleClose);
-      document.body.classList.remove("dialog-open");
+      finishDialogSession(document, null);
     };
   }, [resetExperience]);
 
@@ -393,7 +403,7 @@ export function MedicalUploadExperience({
         state === "success" || state === "deleted" ? undefined : "upload-lead"
       }
       onCancel={(event) => {
-        if (pending || deleting) event.preventDefault();
+        cancelDialog(event, closeDialog, !pending && !deleting);
       }}
     >
       <div className="upload-panel">

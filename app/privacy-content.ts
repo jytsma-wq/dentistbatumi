@@ -164,7 +164,7 @@ export const privacyContent: Record<Locale, PrivacyContent> = {
       {
         title: "Virum ëffentleche Start",
         text:
-          "Déi verifizéiert juristesch Identitéit, de Verantwortleche fir d’Dateveraarbechtung, Kontaktdonnéeën, Déngschtleeschter, Späicherfristen, Patientenrechter an e passenden Iwwerdroungswee musse virun der Notzung mat echte Patientendonnéeën ergänzt ginn.",
+          "Déi verifizéiert juristesch Identitéit, d’Organisatioun, déi fir d’Dateveraarbechtung responsabel ass, Kontaktdonnéeën, Déngschtleeschter, Späicherfristen, Patientenrechter an e passenden Iwwerdroungswee musse virun der Notzung mat echte Patientendonnéeën ergänzt ginn.",
       },
     ],
     noteTitle: "Keng Diagnos a keng Bestätegung vun engem Rendez-vous",

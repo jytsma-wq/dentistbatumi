@@ -11,6 +11,12 @@ import {
   useState,
 } from "react";
 import type { SiteCopy } from "../content";
+import {
+  beginDialogSession,
+  cancelDialog,
+  finishDialogSession,
+  type FocusTarget,
+} from "./ui-interactions";
 
 type Intent = "local" | "international";
 type DialogMode = "booking" | "whatsapp";
@@ -29,6 +35,7 @@ export function BookingExperience({
   uploadLabel,
 }: BookingExperienceProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const returnFocusRef = useRef<FocusTarget | null>(null);
   const [intent, setIntent] = useState<Intent>("local");
   const [whatsappIntent, setWhatsAppIntent] = useState<Intent>();
   const [dialogMode, setDialogMode] = useState<DialogMode>("booking");
@@ -100,7 +107,18 @@ export function BookingExperience({
       setDialogMode(
         trigger.matches("[data-whatsapp]") ? "whatsapp" : "booking",
       );
-      dialogRef.current?.showModal();
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const activeElement =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      returnFocusRef.current = beginDialogSession(
+        dialog,
+        document,
+        trigger,
+        activeElement,
+      );
     };
 
     document.addEventListener("click", handleClick);
@@ -111,20 +129,15 @@ export function BookingExperience({
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    const resetScroll = () => document.body.classList.remove("dialog-open");
-    const lockScroll = () => document.body.classList.add("dialog-open");
-    dialog.addEventListener("close", resetScroll);
-    dialog.addEventListener("cancel", resetScroll);
-    const observer = new MutationObserver(() => {
-      if (dialog.open) lockScroll();
-    });
-    observer.observe(dialog, { attributes: true, attributeFilter: ["open"] });
+    const handleClose = () => {
+      finishDialogSession(document, returnFocusRef.current);
+      returnFocusRef.current = null;
+    };
+    dialog.addEventListener("close", handleClose);
 
     return () => {
-      observer.disconnect();
-      dialog.removeEventListener("close", resetScroll);
-      dialog.removeEventListener("cancel", resetScroll);
-      resetScroll();
+      dialog.removeEventListener("close", handleClose);
+      finishDialogSession(document, null);
     };
   }, []);
 
@@ -212,6 +225,7 @@ export function BookingExperience({
         ref={dialogRef}
         aria-labelledby="booking-title"
         onClose={resetDialog}
+        onCancel={(event) => cancelDialog(event, closeDialog)}
       >
         <div className="booking-panel">
           <header className="booking-header">

@@ -32,7 +32,6 @@ html {
 }
 
 body {
-  min-width: 320px;
   margin: 0;
   background:
     radial-gradient(circle at 84% 4%, rgba(185, 216, 210, 0.35), transparent 28rem),
@@ -44,8 +43,10 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+html.dialog-open,
 body.dialog-open {
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 button,
@@ -3129,8 +3130,14 @@ p {
 
   .home-hero {
     min-height: auto;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto;
+  }
+
+  .hero-image-wrap,
+  .hero-copy,
+  .hero-proof {
+    min-width: 0;
   }
 
   .hero-image-wrap {
@@ -3370,7 +3377,7 @@ p {
   }
 
   .hero-copy h1 {
-    font-size: clamp(3rem, 14vw, 4.3rem);
+    font-size: clamp(2.6rem, 13vw, 4.3rem);
   }
 
   :lang(ka) .hero-copy h1 {
@@ -3410,6 +3417,11 @@ p {
     min-height: 420px;
     min-width: 0;
     padding: 36px 28px;
+  }
+
+  .route-card h3 {
+    max-width: 100%;
+    font-size: clamp(1.75rem, 6vw, 2.4rem);
   }
 
   .needs-section {

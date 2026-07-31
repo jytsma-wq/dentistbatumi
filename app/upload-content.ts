@@ -537,7 +537,7 @@ export const medicalUploadCopy: Record<Locale, MedicalUploadCopy> = {
     trigger: "Röntgenopnamen oder Fotoe schécken",
     close: "Upload vu klinesche Fichieren zoumaachen",
     privatePreview:
-      "Privaten Testmodus: Benotzt harmlos Testfichieren, bis de verifizéierte Verantwortlechen an d'Späicherfrist vun der Klinik verbonne sinn.",
+      "Privaten Testmodus: Benotzt nëmmen harmlos Testfichieren, bis confirméiert ass, wéi eng Organisatioun fir d’Dateveraarbechtung responsabel ass a wéi laang d’Fichiere gespäichert ginn.",
     whatsappWarning:
       "Schéckt keng Röntgenopnamen, Scannen oder medezinesch Dokumenter iwwer WhatsApp. WhatsApp kritt nëmmen Är Referenz.",
     urgentNote:
@@ -637,19 +637,19 @@ export const medicalUploadCopy: Record<Locale, MedicalUploadCopy> = {
     privacy: {
       sectionTitle: "Upload vu klinesche Biller",
       sectionText:
-        "Fichieren am klineschen Upload si Gesondheetsdaten. An dëser privater Testversioun gi si mat enger zoufälleger Referenz am net ëffentleche Sitespäicher ofgeluecht; et gëtt keen ëffentlechen Downloadwee. De Läschknäppchen ass nëmmen disponibel soulaang d’Confirmatioun op ass. Den Datum no 30 Deeg ass nëmme Metadatum; automatescht Läschen ass net ageriicht. Virun der ëffentlecher Notzung mat echte Patientefichiere musse Verantwortlechen, Déngschtleeschter, Späicheruert, Zougrëffsrollen, d’Prozedur bei Dateschutzvirfäll an d'Späicherfrist verifizéiert dokumentéiert sinn.",
+        "Fichieren am klineschen Upload si Gesondheetsdaten. An dëser privater Testversioun gi si mat enger zoufälleger Referenz am net ëffentleche Sitespäicher ofgeluecht; et gëtt keen ëffentlechen Downloadwee. De Läschknäppchen ass nëmmen disponibel soulaang d’Confirmatioun op ass. Den Datum no 30 Deeg ass nëmme Metadatum; automatescht Läschen ass net ageriicht. Virun der ëffentlecher Notzung mat echte Patientefichiere musse confirméiert an dokumentéiert sinn: déi responsabel Organisatioun, d’Déngschtleeschter, de Späicheruert, d’Zougrëffsrollen, d’Prozedur bei Dateschutzvirfäll an d’Späicherfrist.",
     },
   },
   ka: {
-    link: "კლინიკური ფაილების გაგზავნა",
-    eyebrow: "კლინიკური ფაილების ატვირთვა",
+    link: "რენტგენისა და ფოტოების გაგზავნა",
+    eyebrow: "ფაილების ცალკე ატვირთვა",
     title: "რენტგენის სურათებისა და კბილების ფოტოების გაგზავნა",
     lead:
-      "მოთხოვნილი სურათები გააზიარეთ საიტის ცალკე ატვირთვით — არა WhatsApp-ით. ფაილებს შემდეგი კონტაქტისთვის შემთხვევითი რეფერენსი მიენიჭება.",
+      "მოთხოვნილი სურათები გააზიარეთ საიტის ცალკე ატვირთვით — არა WhatsApp-ით. ამ კერძო სატესტო ვერსიაში ფაილები საიტის არასაჯარო საცავში ინახება და კლინიკას ავტომატურად არ ეგზავნება; შემდგომი კონტაქტისთვის მიიღებთ შემთხვევით რეფერენსს.",
     trigger: "რენტგენის ან ფოტოების გაგზავნა",
-    close: "კლინიკური ფაილების ატვირთვის დახურვა",
+    close: "ფაილების ატვირთვის დახურვა",
     privatePreview:
-      "პირადი სატესტო რეჟიმი: გამოიყენეთ უვნებელი სატესტო ფაილები, სანამ კლინიკის გადამოწმებული მონაცემთა პასუხისმგებელი და შენახვის ვადა არ დაემატება.",
+      "კერძო სატესტო რეჟიმი: გამოიყენეთ მხოლოდ უვნებელი სატესტო ფაილები, სანამ მონაცემთა დამუშავებაზე პასუხისმგებელი მხარე და შენახვის ვადა არ დადასტურდება.",
     whatsappWarning:
       "არ გააგზავნოთ რენტგენის სურათები, სკანები ან სამედიცინო დოკუმენტები WhatsApp-ით. WhatsApp მიიღებს მხოლოდ თქვენს რეფერენსს.",
     urgentNote:
@@ -709,7 +709,7 @@ export const medicalUploadCopy: Record<Locale, MedicalUploadCopy> = {
       contactClinic: "კლინიკის ინფორმირება",
       contactCopied: "კლინიკის შეტყობინება დაკოპირდა",
       contactMessage:
-        "გამარჯობა Marea Dental, კლინიკური სურათები საიტის ატვირთვით გავგზავნე. რეფერენსი: {reference}. სასურველი ენა: {language}.",
+        "გამარჯობა Marea Dental, ფაილები საიტის ცალკე ატვირთვით შევინახე. რეფერენსი: {reference}. სასურველი ენა: {language}.",
       deleteUpload: "ჩემი ატვირთვის წაშლა",
       deleting: "ფაილები იშლება…",
       deleteConfirm:
@@ -747,9 +747,9 @@ export const medicalUploadCopy: Record<Locale, MedicalUploadCopy> = {
         "ატვირთვის მოთხოვნის წაკითხვა ვერ მოხერხდა. სცადეთ ხელახლა.",
     },
     privacy: {
-      sectionTitle: "კლინიკური სურათების ატვირთვა",
+      sectionTitle: "რენტგენისა და კბილების ფოტოების ატვირთვა",
       sectionText:
-        "კლინიკური ატვირთვის ფაილები ჯანმრთელობის მონაცემებია. ამ კერძო სატესტო ვერსიაში ისინი შემთხვევითი რეფერენსით საიტის არასაჯარო საცავში ინახება და საჯარო ჩამოტვირთვის გზა არ იქმნება. წაშლის ღილაკი ხელმისაწვდომია მხოლოდ სანამ მიღების დასტური ღიაა. 30-დღიანი თარიღი მხოლოდ მეტამონაცემია; ავტომატური წაშლა არ არის გამართული. რეალური პაციენტის ფაილების საჯაროდ მიღებამდე უნდა დადასტურდეს და აღიწეროს მონაცემთა პასუხისმგებელი, დამმუშავებლები, შენახვის ადგილი, წვდომის როლები, ინციდენტის პროცესი და შენახვის ვადა.",
+        "ატვირთული ფაილები ჯანმრთელობის მონაცემებია. ამ კერძო სატესტო ვერსიაში ისინი შემთხვევითი რეფერენსით საიტის არასაჯარო საცავში ინახება, კლინიკას ავტომატურად არ ეგზავნება და საჯარო ჩამოტვირთვის გზა არ იქმნება. წაშლის ღილაკი ხელმისაწვდომია მხოლოდ სანამ მიღების დასტური ღიაა. 30-დღიანი თარიღი მხოლოდ მეტამონაცემია; ავტომატური წაშლა არ არის გამართული. რეალური პაციენტის ფაილების საჯაროდ მიღებამდე უნდა დადასტურდეს და აღიწეროს მონაცემთა პასუხისმგებელი, დამმუშავებლები, შენახვის ადგილი, წვდომის როლები, ინციდენტის პროცესი და შენახვის ვადა.",
     },
   },
 };

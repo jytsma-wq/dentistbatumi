@@ -3,6 +3,7 @@ import { BrandMark } from "./BrandMark";
 import { type Locale } from "../locales";
 import type { SiteCopy } from "../content";
 import { LocaleMenu } from "./LocaleMenu";
+import { MobileNavigation } from "./MobileNavigation";
 
 export function SiteHeader({
   locale,
@@ -54,26 +55,15 @@ export function SiteHeader({
           >
             {copy.actions.appointment}
           </button>
-          <details className="mobile-menu">
-            <summary aria-label={copy.nav.menu}>
-              <span />
-              <span />
-            </summary>
-            <nav aria-label={copy.nav.primaryLabel}>
-              <Link href={`/${locale}`}>{copy.nav.home}</Link>
-              {navItems.map(([href, label]) => (
-                <Link href={`/${locale}/${href}`} key={href}>
-                  {label}
-                </Link>
-              ))}
-              <button data-whatsapp type="button">
-                {copy.actions.whatsapp}
-              </button>
-              <button data-booking type="button">
-                {copy.actions.appointment}
-              </button>
-            </nav>
-          </details>
+          <MobileNavigation
+            locale={locale}
+            menuLabel={copy.nav.menu}
+            navigationLabel={copy.nav.primaryLabel}
+            homeLabel={copy.nav.home}
+            whatsappLabel={copy.actions.whatsapp}
+            appointmentLabel={copy.actions.appointment}
+            navItems={navItems}
+          />
         </div>
       </div>
     </header>
