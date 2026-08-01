@@ -1,12 +1,13 @@
 {
-  "name": "marea-dental-batumi",
+  "name": "batumi-dental-clinic",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

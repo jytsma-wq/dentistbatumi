@@ -1,6 +1,8 @@
 node_modules
 dist
 .playwright-cli
+output
+tmp
 .DS_Store
 *.local
 .openai/*.tgz
