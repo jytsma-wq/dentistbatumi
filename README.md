@@ -4,6 +4,8 @@ Meertalige website voor een zelfstandige tandartspraktijk in Batumi, voor lokale
 
 ## Lokaal uitvoeren
 
+Gebruik Node.js 22 of nieuwer en pnpm.
+
 ```powershell
 pnpm install
 pnpm dev
@@ -26,7 +28,7 @@ Oude publieke routes zoals `/{taal}/treatments`, `/international`, `/local`, `/r
 
 ## Besloten klinische intake
 
-De Sites-worker in `vite.config.js` verwerkt afspraakaanvragen en maximaal vijf klinische testbestanden via same-origin API-routes. Bestanden en manifesten worden niet openbaar in de gebonden R2-bucket `CLINICAL_UPLOADS` opgeslagen en kunnen met de eenmalige verwijdercode uit het ontvangstbewijs worden verwijderd.
+De Sites-worker in `worker/index.js` verwerkt afspraakaanvragen en maximaal vijf klinische testbestanden via same-origin API-routes. Bestanden en manifesten worden niet openbaar in de gebonden R2-bucket `CLINICAL_UPLOADS` opgeslagen en kunnen met de eenmalige verwijdercode uit het ontvangstbewijs worden verwijderd.
 
 Gebruik tot de publieke activering uitsluitend synthetische testgegevens. Voor echte patiëntgegevens moeten ten minste de juridische kliniekidentiteit, privacycontactpersoon, geauthenticeerde medewerkerstoegang, auditlogging, automatische verwijdering, rate limiting, malwarecontrole en internationale gegevensverwerking schriftelijk en technisch zijn geregeld.
 
