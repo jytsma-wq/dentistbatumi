@@ -12,6 +12,13 @@ export default {
       return handlePrivateIntakeRequest(request, env.CLINICAL_UPLOADS ?? null, 'appointment')
     }
 
+    const acceptsHtml = request.headers.get('accept')?.includes('text/html')
+    if (request.method === 'GET' && acceptsHtml) {
+      const fallbackUrl = new URL(request.url)
+      fallbackUrl.pathname = '/'
+      return env.ASSETS.fetch(new Request(fallbackUrl, request))
+    }
+
     return env.ASSETS.fetch(request)
   },
 }

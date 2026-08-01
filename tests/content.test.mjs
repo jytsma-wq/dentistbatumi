@@ -5,6 +5,7 @@ import { aftercareContent } from '../src/aftercare-content.js'
 import { interfaceContent } from '../src/interface-content.js'
 import { privacyContent } from '../src/privacy-content.js'
 import { legacyRouteTarget, parseRoute, routePath, supportedLocales } from '../src/routes.js'
+import worker from '../worker/index.js'
 
 const localeCodes = languages.map(({ code }) => code)
 
@@ -74,4 +75,31 @@ test('aftercare copy avoids invented emergency contacts or insurance prices', ()
 test('Georgian pages contain Georgian script', () => {
   assert.match(content.ka.heroText, /[ა-ჰ]/)
   assert.match(aftercareContent.ka.metaDescription, /[ა-ჰ]/)
+})
+
+test('worker serves the SPA shell for localized deep links', async () => {
+  const requestedPaths = []
+  const assets = {
+    async fetch(request) {
+      const pathname = new URL(request.url).pathname
+      requestedPaths.push(pathname)
+      if (pathname === '/') {
+        return new Response('<!doctype html><title>Batumi Dental Clinic</title>', {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        })
+      }
+      return new Response(null, { status: 404 })
+    },
+  }
+
+  const response = await worker.fetch(
+    new Request('https://clinic.example/fr/aftercare', {
+      headers: { Accept: 'text/html' },
+    }),
+    { ASSETS: assets },
+  )
+
+  assert.equal(response.status, 200)
+  assert.match(await response.text(), /Batumi Dental Clinic/)
+  assert.deepEqual(requestedPaths, ['/'])
 })

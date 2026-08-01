@@ -11,8 +11,7 @@ const workerConfig = {
   compatibility_date: '2026-08-01',
   assets: {
     binding: 'ASSETS',
-    not_found_handling: 'single-page-application',
-    run_worker_first: ['/api/*'],
+    run_worker_first: true,
   },
   r2_buckets: r2Binding
     ? [{ binding: r2Binding, bucket_name: 'site-creator-r2' }]
