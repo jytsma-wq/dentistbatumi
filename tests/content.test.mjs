@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { content, languages } from '../src/content.js'
 import { aftercareContent } from '../src/aftercare-content.js'
 import { interfaceContent } from '../src/interface-content.js'
@@ -7,6 +8,7 @@ import { privacyContent } from '../src/privacy-content.js'
 import { legacyRouteTarget, parseRoute, routePath, supportedLocales } from '../src/routes.js'
 
 const localeCodes = languages.map(({ code }) => code)
+const redirectRules = readFileSync(new URL('../public/_redirects', import.meta.url), 'utf8')
 
 test('all six site languages have complete home and aftercare content', () => {
   assert.deepEqual(localeCodes, ['nl', 'de', 'fr', 'lb', 'en', 'ka'])
@@ -62,6 +64,9 @@ test('localized routes resolve and preserve the requested page', () => {
   assert.equal(legacyRouteTarget('/fr/contact'), '/fr#contact')
   assert.equal(legacyRouteTarget('/ka/aftercare'), null)
   assert.equal(legacyRouteTarget('/en/privacy'), null)
+  for (const locale of localeCodes) {
+    assert.match(redirectRules, new RegExp(`^/${locale}/\\* /index\\.html 200$`, 'mu'), `${locale}: production SPA fallback`)
+  }
 })
 
 test('aftercare copy avoids invented emergency contacts or insurance prices', () => {
