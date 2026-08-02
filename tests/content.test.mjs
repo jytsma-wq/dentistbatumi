@@ -3,6 +3,15 @@ import assert from 'node:assert/strict'
 import { content, languages } from '../src/content.js'
 import { aftercareContent } from '../src/aftercare-content.js'
 import { interfaceContent } from '../src/interface-content.js'
+import {
+  getVisibleProductDocuments,
+  getVisibleProductFacts,
+  hasProductDetails,
+  isSafeProductUrl,
+  productCategoryIds,
+  treatmentProductCatalog,
+} from '../src/clinic-products.js'
+import { materialsContent } from '../src/materials-content.js'
 import { privacyContent } from '../src/privacy-content.js'
 import { teamSectionContent } from '../src/team-content.js'
 import { legacyRouteTarget, parseRoute, routePath, supportedLocales } from '../src/routes.js'
@@ -16,12 +25,14 @@ test('all six site languages have complete home and aftercare content', () => {
   assert.deepEqual(Object.keys(aftercareContent), localeCodes)
   assert.deepEqual(Object.keys(privacyContent), localeCodes)
   assert.deepEqual(Object.keys(teamSectionContent), localeCodes)
+  assert.deepEqual(Object.keys(materialsContent), localeCodes)
 
   for (const locale of localeCodes) {
     const home = content[locale]
     const care = aftercareContent[locale]
     const privacy = privacyContent[locale]
     const team = teamSectionContent[locale]
+    const materials = materialsContent[locale]
 
     assert.equal(home.nav.length, 4, `${locale}: home navigation`)
     assert.equal(home.treatments.length, 10, `${locale}: treatments`)
@@ -40,7 +51,37 @@ test('all six site languages have complete home and aftercare content', () => {
     assert.ok(team.title.length > 8, `${locale}: team title`)
     assert.ok(team.verification.length > 40, `${locale}: team verification boundary`)
     assert.ok(team.profiles.every(({ role, status, text }) => role && status && text), `${locale}: complete team profiles`)
+    assert.deepEqual(materials.categories.map(({ id }) => id), productCategoryIds, `${locale}: universal material category order`)
+    assert.ok(materials.categories.every(({ title, text }) => title.length > 3 && text.length > 40), `${locale}: complete material explanations`)
+    assert.ok(materials.transparencyNote.length > 60, `${locale}: material transparency promise`)
+    assert.ok(materials.verifiedOnly.length > 30, `${locale}: verified-product boundary`)
   }
+})
+
+test('clinic product catalog is ready for verified facts without showing empty claims', () => {
+  const products = treatmentProductCatalog.products
+  assert.deepEqual(products.map(({ category }) => category), productCategoryIds)
+  assert.equal(new Set(products.map(({ id }) => id)).size, products.length, 'unique product ids')
+  assert.ok(products.every((product) => !hasProductDetails(product)), 'empty catalog templates stay hidden')
+  assert.ok(products.every((product) => getVisibleProductFacts(product).length === 0), 'empty facts stay hidden')
+  assert.ok(products.every((product) => getVisibleProductDocuments(product).length === 0), 'empty documents stay hidden')
+
+  const verifiedProduct = {
+    ...products[0],
+    brand: 'Verified brand',
+    origin: 'DE',
+    documentation: [
+      { title: 'Unsafe', url: 'http://example.com/file.pdf' },
+      { title: 'Product sheet', url: 'https://example.com/file.pdf' },
+    ],
+    warranty: { provider: '', durationMonths: 24, termsUrl: 'https://example.com/warranty' },
+  }
+
+  assert.equal(hasProductDetails(verifiedProduct), true)
+  assert.deepEqual(getVisibleProductFacts(verifiedProduct).map(({ key }) => key), ['brand', 'origin'])
+  assert.deepEqual(getVisibleProductDocuments(verifiedProduct).map(({ title }) => title), ['Product sheet'])
+  assert.equal(isSafeProductUrl('https://example.com/file.pdf'), true)
+  assert.equal(isSafeProductUrl('javascript:alert(1)'), false)
 })
 
 test('Batumi Dental Clinic branding and care principles are complete', () => {

@@ -761,8 +761,30 @@ h3 { line-height: 1.18; }
 .services-mega-groups section > a span { display: none; }
 
 /* Home: one continuous composition */
-.clinical-hero { max-width: none; grid-template-columns: minmax(0, .88fr) minmax(520px, 1.12fr); background: var(--surface); }
-.clinical-hero-copy { padding-left: var(--gutter); padding-right: clamp(3rem, 7vw, 8rem); }
+.clinical-hero { max-width: none; position: relative; isolation: isolate; grid-template-columns: minmax(0, .88fr) minmax(520px, 1.12fr); background: var(--surface); }
+.clinical-hero-copy { z-index: 2; padding-left: var(--gutter); padding-right: clamp(3rem, 7vw, 8rem); }
+.clinical-hero-media > img,
+.care-hero-media > img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.clinical-hero::before {
+  width: 200%;
+  height: clamp(4.5rem, 7vw, 6.75rem);
+  position: absolute;
+  z-index: 1;
+  grid-area: 1 / 1 / 2 / -1;
+  inset: auto auto 0 -50%;
+  content: '';
+  pointer-events: none;
+  opacity: .76;
+  background:
+    radial-gradient(ellipse 12% 72% at 50% 50%, rgba(255,255,255,.5), rgba(197,217,209,.2) 45%, transparent 74%),
+    linear-gradient(180deg, transparent 0%, rgba(23,75,67,.12) 17%, rgba(23,75,67,.42) 47%, rgba(207,226,219,.65) 49%, rgba(255,255,255,.48) 50%, rgba(23,75,67,.36) 53%, rgba(23,75,67,.1) 84%, transparent 100%);
+  transform: translate3d(-20%, 0, 0);
+  animation: clinical-horizon-drift 22s ease-in-out infinite alternate;
+}
+@keyframes clinical-horizon-drift {
+  from { transform: translate3d(-20%, 0, 0); }
+  to { transform: translate3d(20%, 0, 0); }
+}
 .clinical-hero-media::after {
   background:
     radial-gradient(ellipse at 88% 7%, rgba(9,36,32,.58) 0%, rgba(9,36,32,.26) 24%, transparent 50%),
@@ -772,7 +794,7 @@ h3 { line-height: 1.18; }
 .clinical-hero-media figcaption span { font-size: clamp(1.35rem, 2vw, 2rem); }
 .clinical-hero-media figcaption small { max-width: 520px; color: rgba(255,255,255,.7); }
 .hero-location { top: clamp(1.5rem, 4vw, 4rem); right: clamp(1.5rem, 4vw, 4rem); padding: 0; background: transparent; color: white; text-shadow: 0 1px 15px rgba(0,0,0,.3); }
-.clinical-trust-row { min-height: 150px; max-width: none; padding: 2rem var(--gutter); gap: clamp(2rem, 6vw, 7rem); border: 0; background: var(--surface); }
+.clinical-trust-row { min-height: 150px; max-width: none; padding: 2rem var(--gutter); position: relative; z-index: 2; gap: clamp(2rem, 6vw, 7rem); border: 0; background: var(--surface); }
 .clinical-trust-row div { padding: 0; position: relative; border: 0; }
 .clinical-trust-row div + div::before { width: 5px; height: 5px; position: absolute; left: clamp(-3.5rem, -3vw, -1rem); border-radius: 50%; background: var(--copper); content: ''; }
 
@@ -807,6 +829,34 @@ h3 { line-height: 1.18; }
 .treatment-panel { min-height: 760px; grid-template-columns: minmax(0, 1.06fr) minmax(300px, .94fr); background: transparent; }
 .treatment-panel-image { min-height: 760px; }
 .treatment-panel-copy { padding: clamp(3rem, 6vw, 6rem) 0 clamp(3rem, 6vw, 6rem) clamp(3rem, 6vw, 6.5rem); }
+
+/* Materials: educational first, verified product facts when available */
+.materials-section { max-width: none; background: linear-gradient(180deg, var(--surface-soft) 0%, var(--surface-warm) 24%, var(--surface-warm) 100%); }
+.materials-section > * { width: min(100%, calc(var(--container) - (var(--gutter) * 2))); margin-inline: auto; }
+.materials-heading { align-items: start; }
+.materials-heading > p { max-width: 600px; font-size: .87rem; }
+html[lang='ka'] .materials-heading h2 {
+  max-width: 18ch;
+  font-size: clamp(2.25rem, 4.4vw, 4.8rem);
+  line-height: 1.05;
+}
+.materials-list { border-top: 1px solid rgba(23,75,67,.2); }
+.material-entry { padding: clamp(2.6rem, 4.5vw, 4.4rem) 0; display: grid; grid-template-columns: minmax(210px, .42fr) minmax(0, .58fr); gap: clamp(3rem, 8vw, 9rem); border-bottom: 1px solid rgba(23,75,67,.2); }
+.material-entry h3 { max-width: 390px; margin: 0; font-family: var(--display); font-size: clamp(2rem, 3.1vw, 3.35rem); font-weight: 500; letter-spacing: -.025em; }
+.material-entry-detail > p { max-width: 680px; margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.78; }
+.material-product { max-width: 680px; margin-top: 2rem; padding-top: 1.6rem; border-top: 1px solid rgba(23,75,67,.14); }
+.material-product + .material-product { margin-top: 1.6rem; }
+.material-product h4 { margin-bottom: 1.2rem; color: var(--green-deep); font-family: var(--display); font-size: clamp(1.35rem, 2vw, 1.8rem); font-weight: 500; }
+.material-facts { margin: 0; }
+.material-facts > div { min-height: 48px; padding: .7rem 0; display: grid; grid-template-columns: minmax(125px, .38fr) minmax(0, .62fr); gap: 1rem; align-items: baseline; border-top: 1px solid rgba(23,75,67,.12); }
+.material-facts dt { color: var(--muted); font-size: .6rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.material-facts dd { min-width: 0; margin: 0; color: var(--green-deep); font-size: .74rem; line-height: 1.55; overflow-wrap: anywhere; }
+.material-facts a { display: inline-flex; align-items: center; gap: .45rem; border-bottom: 1px solid currentColor; font-weight: 700; }
+.materials-note { margin-top: clamp(3rem, 6vw, 5.5rem); padding-top: 2rem; display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: clamp(1rem, 2vw, 1.8rem); border-top: 1px solid rgba(23,75,67,.24); color: var(--green); }
+.materials-note > svg { margin-top: .2rem; }
+.materials-note strong { display: block; margin-bottom: .55rem; font-family: var(--display); font-size: clamp(1.45rem, 2.2vw, 2rem); font-weight: 500; }
+.materials-note p { max-width: 930px; margin: 0 0 .65rem; color: var(--muted); font-size: .78rem; line-height: 1.72; }
+.materials-note small { display: block; max-width: 900px; color: #7d6254; font-size: .62rem; line-height: 1.6; }
 
 .team-stage { min-height: 820px; grid-template-columns: minmax(0, 1.12fr) minmax(390px, .88fr); gap: clamp(4rem, 8vw, 9rem); overflow: visible; background: transparent; }
 .team-stage-media { min-height: 820px; }
@@ -961,6 +1011,7 @@ h3 { line-height: 1.18; }
   .care-hero { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
   .clinical-hero-copy,
   .care-hero-copy { padding-inline: var(--gutter); }
+  .clinical-hero::before { height: 3.75rem; opacity: .58; animation-duration: 26s; }
   .audience-paths { grid-template-columns: 1fr; gap: 2rem; }
   .audience-paths > a { min-height: 0; }
   .care-principles { grid-template-columns: 1fr; }
@@ -976,6 +1027,7 @@ h3 { line-height: 1.18; }
   .treatment-list { grid-template-columns: 1fr; }
   .treatment-panel { grid-template-columns: 1fr; }
   .treatment-panel-copy { padding: 3rem 0 0; }
+  .material-entry { grid-template-columns: minmax(180px, .4fr) minmax(0, .6fr); gap: 2.5rem; }
   .care-feature,
   .batumi-section,
   .care-closing { grid-template-columns: 1fr; }
@@ -1014,6 +1066,11 @@ h3 { line-height: 1.18; }
   .treatment-list button { min-height: 74px; grid-template-columns: minmax(0, 1fr) 22px; }
   .treatment-list button small { display: none; }
   .treatment-panel-image { min-height: 420px; }
+  .material-entry { grid-template-columns: 1fr; gap: 1.2rem; }
+  .material-entry h3 { max-width: none; }
+  html[lang='ka'] .materials-heading h2 { max-width: none; font-size: clamp(2.1rem, 9.2vw, 2.75rem); line-height: 1.08; }
+  .material-facts > div { grid-template-columns: 1fr; gap: .25rem; }
+  .materials-note { grid-template-columns: 1fr; }
   .team-stage-media { min-height: 500px; }
   .team-profile-card { grid-template-columns: 30px 1fr; }
   .team-action { align-items: stretch; }
@@ -1024,6 +1081,10 @@ h3 { line-height: 1.18; }
   .whatsapp-card { min-height: 560px; margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); }
   .care-passport { left: var(--gutter); right: var(--gutter); bottom: var(--gutter); }
   .handout-columns { gap: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clinical-hero::before { animation: none !important; transform: none !important; }
 }
 
 @media print {

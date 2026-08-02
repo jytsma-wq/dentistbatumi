@@ -20,7 +20,16 @@ import {
 } from 'lucide-react'
 import { content, languages } from './content'
 import { aftercareContent } from './aftercare-content'
+import {
+  getVisibleProductDocuments,
+  getVisibleProductFacts,
+  hasProductDetails,
+  hasVisibleWarranty,
+  isSafeProductUrl,
+  treatmentProductCatalog,
+} from './clinic-products'
 import { interfaceContent } from './interface-content'
+import { materialsContent } from './materials-content'
 import { privacyContent } from './privacy-content'
 import { teamSectionContent } from './team-content'
 import AftercarePage from './AftercarePage'
@@ -48,6 +57,31 @@ function goTo(id) {
   document.querySelector(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
+function formatProductOrigin(origin, locale) {
+  const code = String(origin || '').trim().toUpperCase()
+  if (!/^[A-Z]{2}$/u.test(code)) return origin
+
+  try {
+    return new Intl.DisplayNames([locale], { type: 'region' }).of(code) || code
+  } catch {
+    return code
+  }
+}
+
+function formatWarranty(product, copy, locale) {
+  const parts = []
+  const provider = String(product.warranty?.provider || '').trim()
+  const months = product.warranty?.durationMonths
+
+  if (provider) parts.push(provider)
+  if (Number.isFinite(months)) {
+    const value = new Intl.NumberFormat(locale).format(months)
+    parts.push(`${value} ${months === 1 ? copy.monthOne : copy.monthOther}`)
+  }
+
+  return parts.join(' · ')
+}
+
 function App() {
   const [route, setRoute] = useState(() => parseRoute(window.location.pathname))
   const [activeTreatment, setActiveTreatment] = useState(0)
@@ -65,6 +99,7 @@ function App() {
   const care = aftercareContent[lang]
   const privacy = privacyContent[lang]
   const ui = interfaceContent[lang]
+  const materials = materialsContent[lang]
   const team = teamSectionContent[lang]
 
   useEffect(() => {
@@ -237,6 +272,12 @@ function App() {
     ui.photoAltConsultation,
     ui.photoAltCare,
   ]
+  const materialGroups = materials.categories.map((category) => ({
+    ...category,
+    products: treatmentProductCatalog.products.filter((product) => (
+      product.category === category.id && hasProductDetails(product)
+    )),
+  }))
 
   return (
     <div className="site-shell">
@@ -369,6 +410,66 @@ function App() {
                 <button className="text-button" onClick={() => goTo('#contact')}>{t.cta}<ArrowRight size={17} /></button>
               </div>
             </article>
+          </div>
+        </section>
+
+        <section className="materials-section section" id="materialen" aria-labelledby="materials-title">
+          <header className="materials-heading split-heading">
+            <div>
+              <p className="eyebrow">{materials.eyebrow}</p>
+              <h2 id="materials-title">{materials.title}</h2>
+            </div>
+            <p>{materials.intro}</p>
+          </header>
+
+          <div className="materials-list">
+            {materialGroups.map((category) => (
+              <article className="material-entry" key={category.id}>
+                <h3>{category.title}</h3>
+                <div className="material-entry-detail">
+                  <p>{category.text}</p>
+
+                  {category.products.map((product) => {
+                    const facts = getVisibleProductFacts(product).map((fact) => ({
+                      ...fact,
+                      value: fact.key === 'origin' ? formatProductOrigin(fact.value, lang) : fact.value,
+                    }))
+                    const warranty = hasVisibleWarranty(product) ? formatWarranty(product, materials, lang) : ''
+                    const documents = getVisibleProductDocuments(product)
+                    const productTitle = product.name || product.brand || product.system
+
+                    return (
+                      <div className="material-product" key={product.id}>
+                        {productTitle && <h4>{productTitle}</h4>}
+                        {(facts.length > 0 || warranty || product.batchTraceability === true || documents.length > 0 || isSafeProductUrl(product.warranty?.termsUrl)) && (
+                          <dl className="material-facts">
+                            {facts.map((fact) => (
+                              <div key={fact.key}><dt>{materials.factLabels[fact.key]}</dt><dd>{fact.value}</dd></div>
+                            ))}
+                            {warranty && <div><dt>{materials.factLabels.warranty}</dt><dd>{warranty}</dd></div>}
+                            {product.batchTraceability === true && <div><dt>{materials.factLabels.traceability}</dt><dd>{materials.traceabilityValue}</dd></div>}
+                            {documents.map((document, index) => (
+                              <div key={`${document.url}-${index}`}>
+                                <dt>{materials.factLabels.documentation}</dt>
+                                <dd><a href={document.url} target="_blank" rel="noreferrer">{document.title || materials.viewDocument}<ArrowRight size={14} /></a></dd>
+                              </div>
+                            ))}
+                            {isSafeProductUrl(product.warranty?.termsUrl) && (
+                              <div><dt>{materials.factLabels.warranty}</dt><dd><a href={product.warranty.termsUrl} target="_blank" rel="noreferrer">{materials.viewWarranty}<ArrowRight size={14} /></a></dd></div>
+                            )}
+                          </dl>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="materials-note">
+            <FileText size={25} aria-hidden="true" />
+            <div><strong>{materials.transparencyTitle}</strong><p>{materials.transparencyNote}</p><small>{materials.verifiedOnly}</small></div>
           </div>
         </section>
 
