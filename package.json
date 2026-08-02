@@ -7,6 +7,7 @@
     "dev": "vite",
     "prebuild": "node scripts/clean-dist.mjs",
     "build": "vite build",
+    "postbuild": "node scripts/stage-hosting.mjs",
     "preview": "vite preview",
     "test": "node --test"
   },
