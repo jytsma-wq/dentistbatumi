@@ -73,7 +73,8 @@ async function handlePost(request, bucket, kind) {
     !isEmail(email) ||
     !supportedLocales.has(locale) ||
     !contactConsent ||
-    (kind === 'clinical' && (!ownershipConsent || !healthConsent))
+    !healthConsent ||
+    (kind === 'clinical' && !ownershipConsent)
   ) {
     return jsonError('INVALID_FIELDS', 400)
   }
@@ -141,10 +142,10 @@ async function handlePost(request, bucket, kind) {
       reviewDeleteAfter,
       patient: { name, email, country: country || null, locale, context: context || null },
       consent: {
-        noticeVersion: 'private-review-2026-08-01',
+        noticeVersion: 'private-review-2026-08-02',
         contact: true,
         ownership: kind === 'clinical' ? true : null,
-        healthData: kind === 'clinical' ? true : null,
+        healthData: true,
         recordedAt: receivedAt.toISOString(),
       },
       files: manifestFiles,
@@ -159,7 +160,7 @@ async function handlePost(request, bucket, kind) {
       },
       customMetadata: {
         reference,
-        classification: kind === 'clinical' ? 'clinical-health-data' : 'appointment-request',
+        classification: kind === 'clinical' ? 'clinical-health-data' : 'appointment-health-data',
         reviewDeleteAfter,
       },
     })
@@ -296,8 +297,35 @@ function detectFileKind(bytes) {
   if (bytes.length >= png.length && png.every((value, index) => bytes[index] === value)) return 'png'
   if (bytes.length >= 12 && ascii(bytes, 0, 4) === 'RIFF' && ascii(bytes, 8, 12) === 'WEBP') return 'webp'
   if (bytes.length >= 5 && ascii(bytes, 0, 5) === '%PDF-') return 'pdf'
-  if (bytes.length >= 132 && ascii(bytes, 128, 132) === 'DICM') return 'dicom'
+  if ((bytes.length >= 132 && ascii(bytes, 128, 132) === 'DICM') || looksLikeDicomDataset(bytes)) return 'dicom'
   return null
+}
+
+function looksLikeDicomDataset(bytes) {
+  if (bytes.length < 8) return false
+
+  const commonGroups = new Set([
+    0x0002, 0x0004, 0x0008, 0x0010, 0x0012, 0x0018, 0x0020, 0x0028,
+    0x0032, 0x0038, 0x0040, 0x0054, 0x0060, 0x0070, 0x3002, 0x3004,
+    0x3006, 0x3008, 0x300a, 0x7fe0,
+  ])
+  const explicitValueRepresentations = new Set([
+    'AE', 'AS', 'AT', 'CS', 'DA', 'DS', 'DT', 'FD', 'FL', 'IS', 'LO', 'LT',
+    'OB', 'OD', 'OF', 'OL', 'OV', 'OW', 'PN', 'SH', 'SL', 'SQ', 'SS', 'ST',
+    'SV', 'TM', 'UC', 'UI', 'UL', 'UN', 'UR', 'US', 'UT', 'UV',
+  ])
+  const littleEndianGroup = bytes[0] | (bytes[1] << 8)
+  const bigEndianGroup = (bytes[0] << 8) | bytes[1]
+  const isLittleEndian = commonGroups.has(littleEndianGroup)
+  const isBigEndian = !isLittleEndian && commonGroups.has(bigEndianGroup)
+  if (!isLittleEndian && !isBigEndian) return false
+
+  if (explicitValueRepresentations.has(ascii(bytes, 4, 6))) return true
+
+  const valueLength = isLittleEndian
+    ? (bytes[4] | (bytes[5] << 8) | (bytes[6] << 16) | (bytes[7] << 24)) >>> 0
+    : ((bytes[4] << 24) | (bytes[5] << 16) | (bytes[6] << 8) | bytes[7]) >>> 0
+  return valueLength === 0xffffffff || valueLength <= bytes.length - 8
 }
 
 function ascii(bytes, start, end) {

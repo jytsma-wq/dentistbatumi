@@ -16,6 +16,7 @@ import { privacyContent } from '../src/privacy-content.js'
 import { teamSectionContent } from '../src/team-content.js'
 import { experienceContent } from '../src/experience-content.js'
 import { diagnosticsContent } from '../src/diagnostics-content.js'
+import { notFoundContent } from '../src/not-found-content.js'
 import {
   clinicPriceEntries,
   clinicPriceList,
@@ -36,7 +37,7 @@ import {
 } from '../src/clinic-trust-data.js'
 import { clinicProfile, getClinicContactUrl } from '../src/clinic-profile.js'
 import { trustContent } from '../src/trust-content.js'
-import { legacyRouteTarget, parseRoute, routePath, supportedLocales } from '../src/routes.js'
+import { isSupportedRoutePath, legacyRouteTarget, parseRoute, routePath, supportedLocales } from '../src/routes.js'
 import worker from '../worker/index.js'
 
 const localeCodes = languages.map(({ code }) => code)
@@ -53,6 +54,7 @@ test('all six site languages have complete home and aftercare content', () => {
   assert.deepEqual(Object.keys(trustContent), localeCodes)
   assert.deepEqual(Object.keys(experienceContent), localeCodes)
   assert.deepEqual(Object.keys(diagnosticsContent), localeCodes)
+  assert.deepEqual(Object.keys(notFoundContent), localeCodes)
 
   for (const locale of localeCodes) {
     const home = content[locale]
@@ -149,6 +151,9 @@ test('Batumi Dental Clinic branding and care principles are complete', () => {
     assert.equal(interfaceContent[locale].principles.length, 6, `${locale}: care principles`)
     assert.ok(interfaceContent[locale].bookNow.length > 4, `${locale}: booking action`)
     assert.ok(interfaceContent[locale].whatsappPrompt.includes('WhatsApp'), `${locale}: WhatsApp action`)
+    assert.ok(interfaceContent[locale].healthConsent.length > 40, `${locale}: health-data consent`)
+    assert.ok(interfaceContent[locale].privacyLink.length > 8, `${locale}: privacy link`)
+    assert.ok(interfaceContent[locale].uploadSelectionError.length > 60, `${locale}: actionable upload validation`)
   }
 })
 
@@ -165,6 +170,10 @@ test('localized routes resolve and preserve the requested page', () => {
   assert.equal(routePath('ka', 'privacy'), '/ka/privacy')
   assert.equal(routePath('fr', 'prices'), '/fr/prices')
   assert.equal(routePath('lb'), '/lb')
+  assert.equal(isSupportedRoutePath('/nl'), true)
+  assert.equal(isSupportedRoutePath('/ka/privacy'), true)
+  assert.equal(isSupportedRoutePath('/it'), false)
+  assert.equal(isSupportedRoutePath('/fr/unknown'), false)
   assert.equal(legacyRouteTarget('/nl/treatments'), '/nl#behandelingen')
   assert.equal(legacyRouteTarget('/nl/treatments/implants'), '/nl#behandelingen')
   assert.equal(legacyRouteTarget('/de/results'), '/de#behandelingen')
@@ -180,6 +189,7 @@ test('localized routes resolve and preserve the requested page', () => {
   assert.equal(legacyRouteTarget('/lu', '#diagnostiek'), '/lb#diagnostiek')
   assert.equal(legacyRouteTarget('/lu/prices'), '/lb/prices')
   assert.equal(legacyRouteTarget('/lu/treatments'), '/lb#behandelingen')
+  assert.equal(legacyRouteTarget('/lu/unknown'), null)
 })
 
 test('aftercare copy avoids invented emergency contacts or insurance prices', () => {
@@ -199,15 +209,27 @@ test('Georgian pages contain Georgian script', () => {
   assert.match(interfaceContent.ka.careFeatureText, /ადგილობრივი/, 'aftercare explicitly includes local patients')
 })
 
-test('worker serves the SPA shell for localized deep links', async () => {
+test('worker serves localized, noindex and secured HTML for deep links', async () => {
   const requestedPaths = []
+  const forwardedHeaders = []
   const assets = {
     async fetch(request) {
       const pathname = new URL(request.url).pathname
       requestedPaths.push(pathname)
+      forwardedHeaders.push({
+        method: request.method,
+        ifNoneMatch: request.headers.get('if-none-match'),
+        range: request.headers.get('range'),
+      })
       if (pathname === '/') {
-        return new Response('<!doctype html><title>Batumi Dental Clinic</title>', {
-          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        return new Response('<!doctype html><html lang="nl"><head><meta name="description" content="Default"><title>Batumi Dental Clinic</title></head><body></body></html>', {
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Content-Encoding': 'gzip',
+            'Content-Length': '81',
+            ETag: '"shell-v1"',
+            'Last-Modified': 'Sat, 01 Aug 2026 12:00:00 GMT',
+          },
         })
       }
       return new Response(null, { status: 404 })
@@ -216,12 +238,86 @@ test('worker serves the SPA shell for localized deep links', async () => {
 
   const response = await worker.fetch(
     new Request('https://clinic.example/fr/aftercare', {
-      headers: { Accept: 'text/html' },
+      headers: {
+        Accept: 'text/html',
+        'If-None-Match': '"shell-v1"',
+        Range: 'bytes=0-25',
+      },
     }),
     { ASSETS: assets },
   )
 
   assert.equal(response.status, 200)
-  assert.match(await response.text(), /Batumi Dental Clinic/)
+  const html = await response.text()
+  assert.match(html, /<html lang="fr">/)
+  assert.match(html, /Nazorg|Suivi|premiers jours/)
+  assert.match(html, /name="robots" content="noindex, nofollow"/)
+  assert.match(html, /rel="canonical" href="https:\/\/marea-dental-batumi\.jytsma\.chatgpt\.site\/fr\/aftercare"/)
+  assert.match(html, /hreflang="x-default"/)
+  assert.equal(response.headers.get('x-content-type-options'), 'nosniff')
+  assert.equal(response.headers.get('x-frame-options'), 'DENY')
+  assert.equal(response.headers.get('content-language'), 'fr')
+  assert.equal(response.headers.get('content-encoding'), null)
+  assert.equal(response.headers.get('content-length'), null)
+  assert.equal(response.headers.get('etag'), null)
+  assert.equal(response.headers.get('last-modified'), null)
+  assert.match(response.headers.get('content-security-policy'), /frame-ancestors 'none'/)
   assert.deepEqual(requestedPaths, ['/'])
+  assert.deepEqual(forwardedHeaders, [{ method: 'GET', ifNoneMatch: null, range: null }])
+})
+
+test('worker redirects canonical aliases and returns 404 for unknown routes', async () => {
+  const assets = {
+    async fetch() {
+      return new Response('<!doctype html><html lang="nl"><head><title>Batumi Dental Clinic</title></head><body></body></html>', {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      })
+    },
+  }
+
+  const alias = await worker.fetch(new Request('https://clinic.example/lu/prices', { headers: { Accept: 'text/html' } }), { ASSETS: assets })
+  assert.equal(alias.status, 308)
+  assert.equal(alias.headers.get('location'), 'https://clinic.example/lb/prices')
+
+  const unknown = await worker.fetch(new Request('https://clinic.example/it', { headers: { Accept: 'text/html' } }), { ASSETS: assets })
+  assert.equal(unknown.status, 404)
+  const unknownHtml = await unknown.text()
+  assert.match(unknownHtml, /Page not found|Pagina niet gevonden/)
+  assert.doesNotMatch(unknownHtml, /rel="canonical"|rel="alternate"/)
+
+  const unknownLegacy = await worker.fetch(new Request('https://clinic.example/lu/unknown', { headers: { Accept: 'text/html' } }), { ASSETS: assets })
+  assert.equal(unknownLegacy.status, 404)
+
+  const head = await worker.fetch(new Request('https://clinic.example/ka/privacy', { method: 'HEAD', headers: { Accept: '*/*' } }), { ASSETS: assets })
+  assert.equal(head.status, 200)
+  assert.equal(head.headers.get('content-language'), 'ka')
+  assert.equal(await head.text(), '')
+
+  const rootHead = await worker.fetch(new Request('https://clinic.example/', { method: 'HEAD' }), { ASSETS: assets })
+  assert.equal(rootHead.status, 308)
+  assert.equal(rootHead.headers.get('location'), 'https://clinic.example/nl')
+})
+
+test('worker fails closed when the HTML shell is unavailable or invalid', async () => {
+  const unavailableAssets = {
+    async fetch() {
+      return new Response('asset outage', { status: 503, headers: { 'Content-Type': 'text/plain' } })
+    },
+  }
+  const unavailable = await worker.fetch(new Request('https://clinic.example/nl'), { ASSETS: unavailableAssets })
+  assert.equal(unavailable.status, 503)
+  assert.equal(await unavailable.text(), 'asset outage')
+
+  const invalidAssets = {
+    async fetch() {
+      return new Response('not an HTML shell', { status: 200, headers: { 'Content-Type': 'text/plain' } })
+    },
+  }
+  const invalid = await worker.fetch(new Request('https://clinic.example/nl'), { ASSETS: invalidAssets })
+  assert.equal(invalid.status, 502)
+  assert.equal(invalid.headers.get('cache-control'), 'no-store, max-age=0')
+
+  const invalidHead = await worker.fetch(new Request('https://clinic.example/nl', { method: 'HEAD' }), { ASSETS: invalidAssets })
+  assert.equal(invalidHead.status, 502)
+  assert.equal(await invalidHead.text(), '')
 })

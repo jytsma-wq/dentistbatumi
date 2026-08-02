@@ -12,7 +12,7 @@ import {
   TriangleAlert,
 } from 'lucide-react'
 import { interfaceContent } from './interface-content'
-import { clinicProfile } from './clinic-profile'
+import { clinicImageProps, clinicProfile } from './clinic-profile'
 import { SiteFooter, SiteHeader } from './SiteChrome'
 import { routePath } from './routes'
 
@@ -42,7 +42,7 @@ export default function AftercarePage({ lang, t, care, onLanguageChange }) {
           </div>
 
           <figure className="care-hero-media">
-            <img src={clinicProfile.media.planning} alt={ui.photoAltPlanning} />
+            <img src={clinicProfile.media.planning} alt={ui.photoAltPlanning} {...clinicImageProps(clinicProfile.media.planning, { priority: true })} />
             <figcaption className="care-passport" aria-label={care.passport.ariaLabel}>
               <span>{care.passport.label}</span>
               <strong>{care.passport.title}</strong>
@@ -63,7 +63,7 @@ export default function AftercarePage({ lang, t, care, onLanguageChange }) {
             <p className="eyebrow">{care.journey.eyebrow}</p>
             <h2 id="journey-title">{care.journey.title}</h2>
             <p>{care.journey.intro}</p>
-            <figure><img src={clinicProfile.media.conversation} alt={ui.photoAltConsultation} loading="lazy" /></figure>
+            <figure><img src={clinicProfile.media.conversation} alt={ui.photoAltConsultation} {...clinicImageProps(clinicProfile.media.conversation)} /></figure>
           </div>
           <div className="care-journey-list">
             {care.journey.steps.map((step, index) => {
@@ -163,7 +163,7 @@ export default function AftercarePage({ lang, t, care, onLanguageChange }) {
         </section>
 
         <section className="care-closing" aria-labelledby="closing-title">
-          <figure><img src={clinicProfile.media.clinic} alt={ui.photoAltClinic} loading="lazy" /></figure>
+          <figure><img src={clinicProfile.media.clinic} alt={ui.photoAltClinic} {...clinicImageProps(clinicProfile.media.clinic)} /></figure>
           <div><p className="eyebrow light">{care.closing.eyebrow}</p><h2 id="closing-title">{care.closing.title}</h2><p>{care.closing.text}</p><a className="button button-light" href={`${homePath}#contact`}>{care.closing.cta}<ArrowRight size={18} /></a></div>
         </section>
       </main>

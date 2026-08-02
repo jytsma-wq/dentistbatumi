@@ -2,6 +2,9 @@
 // Replace the values here before a client site is published under its own domain.
 export const clinicProfile = {
   templateMode: true,
+  site: {
+    origin: 'https://marea-dental-batumi.jytsma.chatgpt.site',
+  },
   brand: {
     name: 'Batumi Dental Clinic',
     shortName: 'Batumi',
@@ -46,6 +49,24 @@ export const clinicProfile = {
     page: '#f7f7f4',
     surface: '#ffffff',
   },
+}
+
+const clinicImageDimensions = {
+  '/assets/dental-care.jpg': { width: 2000, height: 1333 },
+  '/assets/dental-clinic.jpg': { width: 1800, height: 1202 },
+  '/assets/dental-consultation.jpg': { width: 1800, height: 2700 },
+  '/assets/dental-conversation.jpg': { width: 1800, height: 2700 },
+  '/assets/dental-planning.jpg': { width: 1800, height: 1200 },
+  '/assets/batumi-coast-patient.webp': { width: 1536, height: 1024 },
+}
+
+export function clinicImageProps(source, { priority = false } = {}) {
+  return {
+    ...(clinicImageDimensions[source] || {}),
+    decoding: 'async',
+    loading: priority ? 'eager' : 'lazy',
+    fetchpriority: priority ? 'high' : 'auto',
+  }
 }
 
 const safeHex = /^#[0-9a-f]{6}$/iu

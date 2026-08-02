@@ -16,7 +16,7 @@ import {
   localizedList,
   localizedValue,
 } from './clinic-prices'
-import { clinicProfile } from './clinic-profile'
+import { clinicImageProps, clinicProfile } from './clinic-profile'
 import { pricesContent } from './prices-content'
 import { SiteFooter, SiteHeader } from './SiteChrome'
 import { routePath } from './routes'
@@ -206,7 +206,7 @@ export default function PricesPage({ lang, t, care, onLanguageChange }) {
             </div>
           ) : (
             <div className="price-empty-state">
-              <figure><img src={clinicProfile.media.planning} alt="" loading="lazy" /></figure>
+              <figure><img src={clinicProfile.media.planning} alt="" {...clinicImageProps(clinicProfile.media.planning)} /></figure>
               <div>
                 <p className="eyebrow">{copy.list.emptyEyebrow}</p>
                 <h3>{copy.list.emptyTitle}</h3>
@@ -241,7 +241,7 @@ export default function PricesPage({ lang, t, care, onLanguageChange }) {
               <a className="text-button" href={uploadPath}><Upload size={18} />{copy.closing.secondary}</a>
             </div>
           </div>
-          <figure><img src={clinicProfile.media.consultation} alt="" loading="lazy" /></figure>
+          <figure><img src={clinicProfile.media.consultation} alt="" {...clinicImageProps(clinicProfile.media.consultation)} /></figure>
         </section>
       </main>
 

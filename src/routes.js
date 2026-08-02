@@ -41,6 +41,14 @@ export function routePath(locale, page = 'home') {
   return ['aftercare', 'privacy', 'prices'].includes(page) ? `/${safeLocale}/${page}` : `/${safeLocale}`
 }
 
+export function isSupportedRoutePath(pathname = '/') {
+  const segments = pathname.split('/').filter(Boolean)
+  if (segments.length === 1) return supportedLocales.includes(segments[0])
+  return segments.length === 2
+    && supportedLocales.includes(segments[0])
+    && ['aftercare', 'privacy', 'prices'].includes(segments[1])
+}
+
 export function legacyRouteTarget(pathname = '/', hash = '') {
   const segments = pathname.split('/').filter(Boolean)
   const requestedLocale = segments[0]
@@ -58,5 +66,5 @@ export function legacyRouteTarget(pathname = '/', hash = '') {
   if (section) return `/${locale}#${section}`
 
   const safeHash = hash.startsWith('#') ? hash : ''
-  return isLocaleAlias ? `/${locale}${safeHash}` : null
+  return isLocaleAlias && segments.length === 1 ? `/${locale}${safeHash}` : null
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, CalendarDays, ChevronDown, Globe2, Languages, Menu, MessageCircle, X } from 'lucide-react'
+import { ArrowRight, CalendarDays, ChevronDown, Globe2, Menu, MessageCircle, X } from 'lucide-react'
 import { languages } from './content'
+import { FlagIcon } from './FlagIcon'
 import { clinicProfile, getClinicContactUrl } from './clinic-profile'
 import { interfaceContent } from './interface-content'
 import { experienceContent } from './experience-content'
@@ -20,15 +21,23 @@ export function Brand({ light = false, homeHref = '/nl' }) {
 
 const serviceGroupIndexes = [[0, 1, 2, 3, 8, 9], [4, 5], [6, 7]]
 
+function localizedPageHref(languageCode, page) {
+  const hash = page !== 'notFound' && typeof window !== 'undefined' ? window.location.hash : ''
+  return `${routePath(languageCode, page)}${hash}`
+}
+
 export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSelect }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [servicesOpen, setServicesOpen] = useState(false)
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false)
+  const [languageOpen, setLanguageOpen] = useState(false)
   const menuButton = useRef(null)
   const mobileNav = useRef(null)
   const servicesButton = useRef(null)
   const servicesNavigation = useRef(null)
   const servicesCloseTimer = useRef(null)
+  const languageButton = useRef(null)
+  const languageNavigation = useRef(null)
   const ui = interfaceContent[lang]
   const experience = experienceContent[lang]
   const homePath = routePath(lang)
@@ -39,6 +48,7 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
   const whatsappUrl = getClinicContactUrl('whatsapp')
   const contactPath = bookingUrl || (page === 'home' ? '#contact' : `${homePath}#contact`)
   const whatsappPath = whatsappUrl || (page === 'home' ? '#whatsapp' : `${homePath}#whatsapp`)
+  const currentLanguage = languages.find((language) => language.code === lang) || languages[0]
 
   useEffect(() => {
     document.body.classList.toggle('menu-open', menuOpen)
@@ -86,6 +96,29 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
     document.addEventListener('pointerdown', closeServicesOutside)
     return () => document.removeEventListener('pointerdown', closeServicesOutside)
   }, [servicesOpen])
+
+  useEffect(() => {
+    if (!languageOpen) return undefined
+
+    function closeLanguageOutside(event) {
+      if (languageNavigation.current?.contains(event.target)) return
+      setLanguageOpen(false)
+    }
+
+    function closeLanguageWithKeyboard(event) {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      setLanguageOpen(false)
+      requestAnimationFrame(() => languageButton.current?.focus())
+    }
+
+    document.addEventListener('pointerdown', closeLanguageOutside)
+    document.addEventListener('keydown', closeLanguageWithKeyboard)
+    return () => {
+      document.removeEventListener('pointerdown', closeLanguageOutside)
+      document.removeEventListener('keydown', closeLanguageWithKeyboard)
+    }
+  }, [languageOpen])
 
   useEffect(() => () => {
     if (servicesCloseTimer.current) window.clearTimeout(servicesCloseTimer.current)
@@ -209,20 +242,68 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
           <a href={carePath} aria-current={page === 'aftercare' ? 'page' : undefined}>{experience.navAftercare}</a>
         </nav>
         <div className="header-tools">
-          <label className="language-picker">
-            <Languages size={16} aria-hidden="true" />
-            <span className="sr-only">{t.languageLabel}</span>
-            <select value={lang} onChange={(event) => onLanguageChange(event.target.value)} aria-label={t.languageLabel}>
-              {languages.map((language) => <option value={language.code} key={language.code}>{language.flag} {language.short}</option>)}
-            </select>
-          </label>
+          <div
+            ref={languageNavigation}
+            className={`language-menu ${languageOpen ? 'open' : ''}`}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setLanguageOpen(false)
+            }}
+          >
+            <button
+              ref={languageButton}
+              type="button"
+              className="language-trigger"
+              aria-expanded={languageOpen}
+              aria-controls="language-options"
+              aria-label={`${t.languageLabel}: ${currentLanguage.label}`}
+              onClick={() => {
+                setMenuOpen(false)
+                setLanguageOpen((open) => !open)
+              }}
+              onKeyDown={(event) => {
+                if (event.key !== 'ArrowDown') return
+                event.preventDefault()
+                setLanguageOpen(true)
+                window.setTimeout(() => languageNavigation.current?.querySelector('a')?.focus(), 40)
+              }}
+            >
+              <FlagIcon code={currentLanguage.code} />
+              <span className="language-code">{currentLanguage.short}</span>
+              <ChevronDown size={14} aria-hidden="true" />
+            </button>
+            <nav id="language-options" className="language-options" aria-label={t.languageLabel}>
+              <span className="language-options-title">{t.languageLabel}</span>
+              {languages.map((language) => (
+                <a
+                  href={localizedPageHref(language.code, page)}
+                  hrefLang={language.code}
+                  lang={language.code}
+                  aria-current={lang === language.code ? 'page' : undefined}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    setLanguageOpen(false)
+                    onLanguageChange(language.code)
+                    requestAnimationFrame(() => languageButton.current?.focus())
+                  }}
+                  key={language.code}
+                >
+                  <FlagIcon code={language.code} />
+                  <span>{language.label}</span>
+                  <small>{language.short}</small>
+                </a>
+              ))}
+            </nav>
+          </div>
           <a className="header-whatsapp" href={whatsappPath} target={whatsappUrl ? '_blank' : undefined} rel={whatsappUrl ? 'noreferrer' : undefined}><MessageCircle size={17} /><span>{ui.whatsapp}</span></a>
           <a className="button header-button" href={contactPath} target={bookingUrl ? '_blank' : undefined} rel={bookingUrl ? 'noreferrer' : undefined}>{ui.appointment}<ArrowRight size={16} /></a>
           <button
             ref={menuButton}
             className="menu-button"
             type="button"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => {
+              setLanguageOpen(false)
+              setMenuOpen((open) => !open)
+            }}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             aria-label={menuOpen ? t.close : t.menu}
@@ -310,7 +391,22 @@ export function SiteFooter({ lang, page, t, care, onLanguageChange }) {
         <span>© 2026 {clinicProfile.brand.name.toUpperCase()}</span>
         <div className="footer-languages" aria-label={t.languageLabel}>
           {languages.map((language) => (
-            <button type="button" className={lang === language.code ? 'active' : ''} onClick={() => onLanguageChange(language.code)} key={language.code} aria-label={language.label}>{language.flag} {language.short}</button>
+            <a
+              href={localizedPageHref(language.code, page)}
+              hrefLang={language.code}
+              lang={language.code}
+              className={lang === language.code ? 'active' : ''}
+              onClick={(event) => {
+                event.preventDefault()
+                onLanguageChange(language.code)
+              }}
+              key={language.code}
+              aria-label={language.label}
+              aria-current={lang === language.code ? 'page' : undefined}
+            >
+              <FlagIcon code={language.code} />
+              <span>{language.short}</span>
+            </a>
           ))}
         </div>
         <small>{page === 'aftercare' ? care.prototypeNote : t.footerNote}</small>

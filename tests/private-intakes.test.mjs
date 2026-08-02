@@ -66,7 +66,7 @@ test('stores and deletes a verified private clinical upload', async () => {
   const manifestEntry = [...bucket.objects.entries()].find(([key]) => key.endsWith('/manifest.json'))
   assert.ok(manifestEntry)
   const manifest = JSON.parse(new TextDecoder().decode(manifestEntry[1].body))
-  assert.equal(manifest.consent.noticeVersion, 'private-review-2026-08-01')
+  assert.equal(manifest.consent.noticeVersion, 'private-review-2026-08-02')
 
   const deleteResponse = await handlePrivateIntakeRequest(new Request('http://localhost/api/clinical-files', {
     method: 'DELETE',
@@ -85,6 +85,43 @@ test('stores an appointment request without clinical files', async () => {
   assert.match(receipt.reference, /^BDC-A-\d{8}-[A-F0-9]{32}$/)
   assert.equal(receipt.fileCount, 0)
   assert.equal(bucket.objects.size, 1)
+})
+
+test('accepts valid DICOM datasets without a Part-10 preamble', async () => {
+  const datasets = [
+    ['explicit-vr.dcm', new Uint8Array([0x08, 0x00, 0x05, 0x00, 0x43, 0x53, 0x02, 0x00, 0x45, 0x4e])],
+    ['implicit-vr.dcm', new Uint8Array([0x08, 0x00, 0x05, 0x00, 0x02, 0x00, 0x00, 0x00, 0x45, 0x4e])],
+  ]
+
+  for (const [filename, bytes] of datasets) {
+    const baseRequest = createRequest('clinical')
+    const data = await baseRequest.formData()
+    data.delete('files')
+    data.append('files', new File([bytes], filename, { type: 'application/dicom' }))
+    const bucket = new MemoryBucket()
+    const response = await handlePrivateIntakeRequest(new Request('http://localhost/api/clinical-files', {
+      method: 'POST',
+      headers: { origin: 'http://localhost', 'content-length': '2048' },
+      body: data,
+    }), bucket, 'clinical')
+
+    assert.equal(response.status, 201, filename)
+    assert.ok([...bucket.objects.keys()].some((key) => key.endsWith('.dcm')), filename)
+  }
+})
+
+test('rejects appointment context without explicit health-data consent', async () => {
+  const request = createRequest('appointment', { file: false })
+  const data = await request.formData()
+  data.set('healthConsent', 'no')
+  const response = await handlePrivateIntakeRequest(new Request('http://localhost/api/appointment-requests', {
+    method: 'POST',
+    headers: { origin: 'http://localhost', 'content-length': '2048' },
+    body: data,
+  }), new MemoryBucket(), 'appointment')
+
+  assert.equal(response.status, 400)
+  assert.equal((await response.json()).code, 'INVALID_FIELDS')
 })
 
 test('rejects renamed files, cross-origin requests and a missing bucket', async () => {

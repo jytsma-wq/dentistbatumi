@@ -21,6 +21,7 @@ import {
   X,
 } from 'lucide-react'
 import { content, languages } from './content'
+import { homeMetaDescriptions } from './home-meta'
 import { aftercareContent } from './aftercare-content'
 import {
   getVisibleProductDocuments,
@@ -31,18 +32,20 @@ import {
   treatmentProductCatalog,
 } from './clinic-products'
 import { interfaceContent } from './interface-content'
-import { clinicProfile, clinicThemeVariables, getClinicContactUrl } from './clinic-profile'
+import { clinicImageProps, clinicProfile, clinicThemeVariables, getClinicContactUrl } from './clinic-profile'
 import { experienceContent } from './experience-content'
 import { diagnosticsContent } from './diagnostics-content'
 import { materialsContent } from './materials-content'
 import { privacyContent } from './privacy-content'
 import { pricesContent } from './prices-content'
 import AftercarePage from './AftercarePage'
+import NotFoundPage from './NotFoundPage'
 import PrivacyPage from './PrivacyPage'
 import PricesPage from './PricesPage'
+import { notFoundContent } from './not-found-content'
 import { ClinicSocialLinks, CredentialsTrustSection, ReviewsTrustSection, TeamTrustSection } from './TrustSections'
 import { SiteFooter, SiteHeader } from './SiteChrome'
-import { legacyRouteTarget, parseRoute, routePath } from './routes'
+import { isSupportedRoutePath, legacyRouteTarget, parseRoute, routePath } from './routes'
 import { usePageMeta } from './usePageMeta'
 
 const treatmentImages = clinicProfile.media.treatments
@@ -99,8 +102,12 @@ function ClinicalTicker({ items, copy, running, onToggle }) {
   )
 }
 
+function resolveBrowserRoute(pathname, hash = '') {
+  return { ...parseRoute(pathname), notFound: !isSupportedRoutePath(pathname), hash }
+}
+
 function App() {
-  const [route, setRoute] = useState(() => parseRoute(window.location.pathname))
+  const [route, setRoute] = useState(() => resolveBrowserRoute(window.location.pathname, window.location.hash))
   const [activeTreatment, setActiveTreatment] = useState(0)
   const [openFaq, setOpenFaq] = useState(0)
   const [submitted, setSubmitted] = useState(false)
@@ -110,9 +117,9 @@ function App() {
   const [intakeError, setIntakeError] = useState('')
   const [whatsappOpen, setWhatsappOpen] = useState(false)
   const [motionRunning, setMotionRunning] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-  const fileInput = useRef(null)
+  const successPanel = useRef(null)
   const intakeStartedAt = useRef(Date.now())
-  const { locale: lang, page } = route
+  const { locale: lang, page, notFound, hash } = route
   const t = content[lang]
   const care = aftercareContent[lang]
   const privacy = privacyContent[lang]
@@ -129,23 +136,33 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (!submitted || !['success', 'deleted'].includes(intakeState)) return
+    requestAnimationFrame(() => successPanel.current?.focus())
+  }, [submitted, intakeState])
+
+  useEffect(() => {
     const legacyTarget = legacyRouteTarget(window.location.pathname, window.location.hash)
     if (legacyTarget) {
       window.history.replaceState({}, '', legacyTarget)
-      setRoute(parseRoute(new URL(legacyTarget, window.location.origin).pathname))
+      const targetUrl = new URL(legacyTarget, window.location.origin)
+      setRoute(resolveBrowserRoute(targetUrl.pathname, targetUrl.hash))
     }
 
-    function handlePopState() {
-      setRoute(parseRoute(window.location.pathname))
+    function handleLocationChange() {
+      setRoute(resolveBrowserRoute(window.location.pathname, window.location.hash))
     }
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
+    window.addEventListener('popstate', handleLocationChange)
+    window.addEventListener('hashchange', handleLocationChange)
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange)
+      window.removeEventListener('hashchange', handleLocationChange)
+    }
   }, [])
 
   useEffect(() => {
-    if (page !== 'home' || !window.location.hash) return undefined
+    if (!hash) return undefined
 
-    const treatmentMatch = window.location.hash.match(/^#behandeling-(\d{2})$/)
+    const treatmentMatch = page === 'home' ? hash.match(/^#behandeling-(\d{2})$/) : null
     const treatmentIndex = treatmentMatch
       ? t.treatments.findIndex((item) => item.number === treatmentMatch[1])
       : -1
@@ -153,7 +170,7 @@ function App() {
       ? '#treatment-panel'
       : treatmentIndex >= 0
         ? '#behandelingen'
-        : window.location.hash
+        : hash
 
     if (treatmentIndex >= 0) setActiveTreatment(treatmentIndex)
 
@@ -161,9 +178,15 @@ function App() {
     let settleFrame = 0
     const scrollToTarget = () => {
       if (cancelled) return
-      document.querySelector(target)?.scrollIntoView({ block: 'start' })
+      const targetElement = document.querySelector(target)
+      if (!targetElement) return
+      const previousBehavior = document.documentElement.style.scrollBehavior
+      document.documentElement.style.scrollBehavior = 'auto'
+      targetElement.scrollIntoView({ block: 'start' })
+      document.documentElement.style.scrollBehavior = previousBehavior
     }
     const timer = window.setTimeout(scrollToTarget, 0)
+    const layoutTimer = window.setTimeout(scrollToTarget, 500)
 
     document.fonts?.ready.then(() => {
       if (!cancelled) settleFrame = window.requestAnimationFrame(scrollToTarget)
@@ -172,44 +195,72 @@ function App() {
     return () => {
       cancelled = true
       window.clearTimeout(timer)
+      window.clearTimeout(layoutTimer)
       window.cancelAnimationFrame(settleFrame)
     }
-  }, [lang, page, t.treatments])
+  }, [hash, lang, page, t.treatments])
 
   usePageMeta({
     locale: lang,
     page,
-    noIndex: clinicProfile.templateMode,
-    title: page === 'aftercare'
+    noIndex: clinicProfile.templateMode || notFound,
+    omitCanonical: notFound,
+    title: notFound
+      ? notFoundContent[lang].metaTitle
+      : page === 'aftercare'
       ? care.metaTitle
       : page === 'privacy'
         ? privacy.metaTitle
         : page === 'prices'
           ? prices.metaTitle
           : `${clinicProfile.brand.name} — ${t.footerLine}`,
-    description: page === 'aftercare'
+    description: notFound
+      ? notFoundContent[lang].text
+      : page === 'aftercare'
       ? care.metaDescription
       : page === 'privacy'
         ? privacy.metaDescription
         : page === 'prices'
           ? (clinicProfile.templateMode ? prices.templateMetaDescription : prices.metaDescription)
-          : t.heroText,
+          : homeMetaDescriptions[lang],
   })
 
   function changeLanguage(nextLanguage) {
-    const hash = page === 'home' ? window.location.hash : ''
-    window.history.pushState({}, '', `${routePath(nextLanguage, page)}${hash}`)
-    setRoute({ locale: nextLanguage, page })
+    const nextPage = notFound ? 'home' : page
+    const nextHash = notFound ? '' : window.location.hash
+    window.history.pushState({}, '', `${routePath(nextLanguage, nextPage)}${nextHash}`)
+    setRoute({ locale: nextLanguage, page: nextPage, notFound: false, hash: nextHash })
+  }
+
+  function chooseTreatment(index) {
+    const treatmentHash = `#behandeling-${t.treatments[index].number}`
+    setActiveTreatment(index)
+    window.history.replaceState({}, '', `${window.location.pathname}${treatmentHash}`)
+    setRoute((current) => current.hash === treatmentHash ? current : { ...current, hash: treatmentHash })
   }
 
   function handleFiles(event) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'application/dicom']
     const allowedExtension = /\.(jpe?g|png|webp|pdf|dcm)$/iu
-    const selected = Array.from(event.target.files || []).filter((file) => (
-      allowedTypes.includes(file.type) || allowedExtension.test(file.name)
-    ))
-    setFiles((current) => [...current, ...selected].slice(0, 5))
-    setIntakeError('')
+    const maxFiles = 5
+    const maxFileBytes = 10 * 1024 * 1024
+    const maxTotalBytes = 25 * 1024 * 1024
+    let selectionRejected = false
+    let totalBytes = files.reduce((sum, file) => sum + file.size, 0)
+    const selected = [...files]
+
+    for (const file of Array.from(event.target.files || [])) {
+      const supported = allowedTypes.includes(file.type) || allowedExtension.test(file.name)
+      if (!supported || file.size <= 0 || file.size > maxFileBytes || selected.length >= maxFiles || totalBytes + file.size > maxTotalBytes) {
+        selectionRejected = true
+        continue
+      }
+      selected.push(file)
+      totalBytes += file.size
+    }
+
+    setFiles(selected)
+    setIntakeError(selectionRejected ? 'FILE_SELECTION' : '')
     event.target.value = ''
   }
 
@@ -230,12 +281,12 @@ function App() {
     payload.set('context', String(formValues.get('wish') || ''))
     payload.set('startedAt', String(intakeStartedAt.current))
     payload.set('contactConsent', formValues.get('consent') === 'on' ? 'yes' : 'no')
+    payload.set('healthConsent', formValues.get('healthConsent') === 'on' ? 'yes' : 'no')
     payload.set('website', '')
 
     if (hasClinicalFiles) {
       const clinicalConsent = formValues.get('fileConsent') === 'on'
       payload.set('ownershipConsent', clinicalConsent ? 'yes' : 'no')
-      payload.set('healthConsent', clinicalConsent ? 'yes' : 'no')
       files.forEach((file) => payload.append('files', file, file.name))
     }
 
@@ -297,6 +348,10 @@ function App() {
     intakeStartedAt.current = Date.now()
   }
 
+  if (notFound) {
+    return <NotFoundPage lang={lang} t={t} care={care} onLanguageChange={changeLanguage} />
+  }
+
   if (page === 'aftercare') {
     return <AftercarePage lang={lang} t={t} care={care} onLanguageChange={changeLanguage} />
   }
@@ -340,8 +395,7 @@ function App() {
         care={care}
         onLanguageChange={changeLanguage}
         onServiceSelect={(index) => {
-          setActiveTreatment(index)
-          window.history.replaceState({}, '', `${window.location.pathname}#behandeling-${t.treatments[index].number}`)
+          chooseTreatment(index)
           requestAnimationFrame(() => goTo(window.matchMedia('(max-width: 1020px)').matches ? '#treatment-panel' : '#behandelingen'))
         }}
       />
@@ -360,7 +414,7 @@ function App() {
           </div>
 
           <figure className="clinical-hero-media">
-            <img src={clinicProfile.media.hero} alt={ui.photoAltConsultation} />
+            <img src={clinicProfile.media.hero} alt={ui.photoAltConsultation} {...clinicImageProps(clinicProfile.media.hero, { priority: true })} />
             <figcaption>
               <span>{ui.heroMediaLabel}</span>
               <small>{ui.heroMediaNote}</small>
@@ -402,10 +456,10 @@ function App() {
           </div>
           <div className="opening-gallery" aria-label={ui.galleryLabel}>
             <figure className="opening-gallery-main">
-              <img src={clinicProfile.media.clinic} alt={ui.photoAltClinic} loading="lazy" />
+              <img src={clinicProfile.media.clinic} alt={ui.photoAltClinic} {...clinicImageProps(clinicProfile.media.clinic)} />
             </figure>
             <figure className="opening-gallery-detail">
-              <img src={clinicProfile.media.planning} alt={ui.photoAltPlanning} loading="lazy" />
+              <img src={clinicProfile.media.planning} alt={ui.photoAltPlanning} {...clinicImageProps(clinicProfile.media.planning)} />
               <figcaption>{ui.galleryCaption}</figcaption>
             </figure>
           </div>
@@ -417,7 +471,7 @@ function App() {
 
         <section className="radiology-section" id="diagnostiek" aria-labelledby="radiology-title">
           <figure>
-            <img src={clinicProfile.media.radiology} alt={diagnostics.imageAlt} loading="lazy" />
+            <img src={clinicProfile.media.radiology} alt={diagnostics.imageAlt} {...clinicImageProps(clinicProfile.media.radiology)} />
             <figcaption><ScanLine size={18} aria-hidden="true" />{diagnostics.eyebrow}</figcaption>
           </figure>
           <div className="radiology-copy">
@@ -446,12 +500,12 @@ function App() {
                   key={item.name}
                   type="button"
                   role="tab"
-                  id={`treatment-tab-${item.number}`}
+                  id={`behandeling-${item.number}`}
                   aria-selected={activeTreatment === index}
                   aria-controls="treatment-panel"
                   tabIndex={activeTreatment === index ? 0 : -1}
                   className={activeTreatment === index ? 'active' : ''}
-                  onClick={() => setActiveTreatment(index)}
+                  onClick={() => chooseTreatment(index)}
                   onKeyDown={(event) => {
                     const keyTargets = {
                       ArrowDown: (index + 1) % t.treatments.length,
@@ -464,8 +518,8 @@ function App() {
                     const nextIndex = keyTargets[event.key]
                     if (nextIndex === undefined) return
                     event.preventDefault()
-                    setActiveTreatment(nextIndex)
-                    requestAnimationFrame(() => document.getElementById(`treatment-tab-${t.treatments[nextIndex].number}`)?.focus())
+                    chooseTreatment(nextIndex)
+                    requestAnimationFrame(() => document.getElementById(`behandeling-${t.treatments[nextIndex].number}`)?.focus())
                   }}
                 >
                   <strong>{item.name}</strong>
@@ -474,9 +528,9 @@ function App() {
                 </button>
               ))}
             </div>
-            <article className="treatment-panel" id="treatment-panel" role="tabpanel" aria-labelledby={`treatment-tab-${treatment.number}`} key={treatment.number}>
+            <article className="treatment-panel" id="treatment-panel" role="tabpanel" aria-labelledby={`behandeling-${treatment.number}`} key={treatment.number}>
               <div className="treatment-panel-image">
-                <img src={treatmentImages[activeTreatment]} alt={treatmentAlts[activeTreatment]} />
+                <img src={treatmentImages[activeTreatment]} alt={treatmentAlts[activeTreatment]} {...clinicImageProps(treatmentImages[activeTreatment])} />
               </div>
               <div className="treatment-panel-copy">
                 <span>{treatment.time}</span>
@@ -569,7 +623,7 @@ function App() {
 
         <section className="clinic-section section" id="werkwijze" aria-labelledby="clinic-title">
           <div className="clinic-visual">
-            <img src={clinicProfile.media.consultation} alt={ui.photoAltConsultation} loading="lazy" />
+            <img src={clinicProfile.media.consultation} alt={ui.photoAltConsultation} {...clinicImageProps(clinicProfile.media.consultation)} />
             <div className="clinic-visual-note"><Stethoscope size={19} /><span>{t.promise}</span></div>
           </div>
           <div className="clinic-content">
@@ -599,7 +653,7 @@ function App() {
         </section>
 
         <section className="care-feature" aria-labelledby="care-feature-title">
-          <div className="care-feature-image"><img src={clinicProfile.media.planning} alt={ui.photoAltPlanning} loading="lazy" /></div>
+          <div className="care-feature-image"><img src={clinicProfile.media.planning} alt={ui.photoAltPlanning} {...clinicImageProps(clinicProfile.media.planning)} /></div>
           <div className="care-feature-copy">
             <p className="eyebrow light">{ui.careFeatureEyebrow}</p>
             <h2 id="care-feature-title">{ui.careFeatureTitle}</h2>
@@ -610,7 +664,7 @@ function App() {
         </section>
 
         <section className="batumi-section" aria-labelledby="batumi-title">
-          <figure><img src={clinicProfile.media.localPatient} alt={t.batumiImageAlt} loading="lazy" /></figure>
+          <figure><img src={clinicProfile.media.localPatient} alt={t.batumiImageAlt} {...clinicImageProps(clinicProfile.media.localPatient)} /></figure>
           <div>
             <p className="eyebrow light">{t.batumiEyebrow}</p>
             <h2 id="batumi-title">{t.batumiTitle}</h2>
@@ -636,17 +690,20 @@ function App() {
               {!submitted ? (
                 <form onSubmit={handleSubmit}>
                   <div className="form-grid">
-                    <label><span>{t.fields.name}</span><input name="name" autoComplete="name" required /></label>
-                    <label><span>{t.fields.email}</span><input name="email" type="email" autoComplete="email" required /></label>
+                    <label><span>{t.fields.name}</span><input name="name" autoComplete="name" maxLength="90" required /></label>
+                    <label><span>{t.fields.email}</span><input name="email" type="email" autoComplete="email" maxLength="180" required /></label>
                     <label><span>{t.fields.country}</span><select name="country" defaultValue={lang === 'ka' ? 'GE' : 'NL'}><option value="GE">საქართველო</option><option value="NL">Nederland</option><option value="BE">België / Belgique</option><option value="DE">Deutschland</option><option value="FR">France</option><option value="CH">Schweiz / Suisse</option><option value="LU">Luxembourg</option><option value="IT">Italia</option><option value="ES">España</option></select></label>
                     <label><span>{t.fields.language}</span><select name="language" value={lang} onChange={(event) => changeLanguage(event.target.value)}>{languages.map((language) => <option key={language.code} value={language.code}>{language.label}</option>)}</select></label>
                   </div>
-                  <label className="full-field"><span>{t.fields.wish}</span><textarea name="wish" rows="4" placeholder={t.fields.placeholder} /></label>
+                  <label className="full-field"><span>{t.fields.wish}</span><textarea name="wish" rows="4" maxLength="800" placeholder={t.fields.placeholder} /></label>
 
                   <div className="upload-field">
                     <div className="upload-field-copy"><FileImage size={21} /><div><strong>{ui.uploadTitle}</strong><p>{ui.uploadText}</p></div></div>
-                    <input ref={fileInput} id="medical-files" name="files" className="sr-only" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.dcm,image/jpeg,image/png,image/webp,application/pdf,application/dicom" multiple onChange={handleFiles} />
-                    <button className="upload-button" type="button" onClick={() => fileInput.current?.click()}><Upload size={17} />{ui.uploadChoose}</button>
+                    <label className="upload-button" htmlFor="medical-files">
+                      <Upload size={17} />
+                      <span>{ui.uploadChoose}</span>
+                      <input id="medical-files" name="files" className="upload-input-overlay" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.dcm,image/jpeg,image/png,image/webp,application/pdf,application/dicom" multiple onChange={handleFiles} />
+                    </label>
                     <small>{ui.uploadHelp}</small>
                     {files.length > 0 && (
                       <ul className="file-list" aria-live="polite">
@@ -660,14 +717,18 @@ function App() {
                   {files.length > 0 && (
                     <label className="consent clinical-consent"><input type="checkbox" name="fileConsent" required /><span>{ui.uploadConsent}</span></label>
                   )}
+                  <label className="consent health-consent">
+                    <input type="checkbox" name="healthConsent" required />
+                    <span>{ui.healthConsent} <a href={routePath(lang, 'privacy')} target="_blank" rel="noreferrer">{ui.privacyLink}</a></span>
+                  </label>
                   <label className="consent"><input type="checkbox" name="consent" required /><span>{t.fields.consent}</span></label>
-                  {intakeError && <p className="form-error" role="alert">{ui.intakeError}</p>}
+                  {intakeError && <p className="form-error" role="alert">{['FILE_SELECTION', 'FILE_TOO_LARGE', 'TOTAL_TOO_LARGE', 'TOO_MANY_FILES', 'FILE_TYPE_REJECTED'].includes(intakeError) ? ui.uploadSelectionError : ui.intakeError}</p>}
                   {intakeState === 'sending' && <p className="form-progress" role="status">{ui.intakeSending}</p>}
                   <button className="button button-primary form-submit" type="submit" disabled={intakeState === 'sending'}>{intakeState === 'sending' ? ui.intakeSending : t.fields.submit}<ArrowRight size={18} /></button>
                   <small className="form-note">{t.fields.note}</small>
                 </form>
               ) : (
-                <div className="form-success" role="status" aria-live="polite">
+                <div ref={successPanel} className="form-success" role="status" aria-live="polite" tabIndex="-1">
                   <CircleCheck size={42} />
                   <p className="eyebrow">{clinicProfile.brand.name}</p>
                   <h3>{intakeState === 'deleted' ? ui.intakeDeletedTitle : intakeReceipt?.kind === 'clinical' ? ui.uploadSuccessTitle : ui.appointmentSuccessTitle}</h3>
@@ -692,9 +753,9 @@ function App() {
               {officialWhatsAppUrl ? (
                 <a className="button button-light" href={officialWhatsAppUrl} target="_blank" rel="noreferrer">{ui.whatsappAction}<ArrowRight size={17} /></a>
               ) : (
-                <button className="button button-light" type="button" onClick={() => setWhatsappOpen((open) => !open)} aria-expanded={whatsappOpen}>{ui.whatsappAction}<ArrowRight size={17} /></button>
+                <button className="button button-light" type="button" onClick={() => setWhatsappOpen((open) => !open)} aria-expanded={whatsappOpen} aria-controls="whatsapp-status">{ui.whatsappAction}<ArrowRight size={17} /></button>
               )}
-              {!officialWhatsAppUrl && whatsappOpen && <div className="whatsapp-status" role="status"><ShieldCheck size={18} /><span>{ui.whatsappStatus}</span></div>}
+              {!officialWhatsAppUrl && whatsappOpen && <div id="whatsapp-status" className="whatsapp-status" role="status"><ShieldCheck size={18} /><span>{ui.whatsappStatus}</span></div>}
               <small>{care.firstWeek.channelNote}</small>
             </aside>
           </div>
