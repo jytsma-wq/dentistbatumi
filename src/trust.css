@@ -3,6 +3,7 @@
   --trust-green: var(--green, #174b43);
   --trust-deep: var(--green-deep, #0e3934);
   --trust-copper: var(--copper, #a96343);
+  --trust-copper-text: var(--copper-text, #9b583a);
   --trust-muted: var(--muted, #5f6d69);
   --trust-line: var(--line, #d8dfdc);
   --trust-page: var(--page, #f7f7f4);
@@ -108,47 +109,48 @@
 }
 
 .trust-team-empty {
-  min-height: clamp(500px, 55vw, 720px);
+  min-height: clamp(460px, 49vw, 680px);
   display: grid;
-  grid-template-columns: minmax(300px, .86fr) minmax(0, 1.14fr);
-  background: var(--trust-surface);
-  border-top: 1px solid var(--trust-line);
-  border-bottom: 1px solid var(--trust-line);
+  grid-template-columns: minmax(300px, .72fr) minmax(0, 1.28fr);
+  gap: clamp(4rem, 10vw, 12rem);
+  align-items: center;
+  background: transparent;
 }
 
 .trust-empty-monogram {
-  min-height: 100%;
-  padding: clamp(2rem, 5vw, 5rem);
+  min-height: clamp(270px, 34vw, 470px);
+  padding: 0;
   position: relative;
   display: grid;
-  place-items: center;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 72% 28%, rgba(195, 221, 213, .22), transparent 24%),
-    linear-gradient(142deg, #173f39 0%, #0e312d 48%, #081f1c 100%);
-  color: white;
+  place-items: center start;
+  overflow: visible;
+  background: transparent;
+  color: var(--trust-green);
 }
 
-.trust-empty-monogram::before,
 .trust-empty-monogram::after {
   content: '';
   position: absolute;
-  border: 1px solid rgba(255, 255, 255, .13);
-  border-radius: 50%;
 }
 
 .trust-empty-monogram::before {
-  width: min(45vw, 520px);
-  aspect-ratio: 1;
-  right: -31%;
-  top: -24%;
+  content: '';
+  width: min(58vw, 720px);
+  height: min(58vw, 720px);
+  left: -42%;
+  top: 50%;
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(197, 217, 209, .34) 0%, rgba(197, 217, 209, .09) 44%, transparent 70%);
+  transform: translateY(-50%);
 }
 
 .trust-empty-monogram::after {
-  width: min(34vw, 370px);
-  aspect-ratio: 1;
-  left: -26%;
-  bottom: -22%;
+  width: min(82%, 520px);
+  height: 1px;
+  left: 0;
+  bottom: 20%;
+  background: linear-gradient(90deg, var(--trust-copper), transparent);
 }
 
 .trust-empty-monogram span {
@@ -162,16 +164,17 @@
 }
 
 .trust-empty-monogram i {
-  width: 1px;
-  height: 34%;
+  width: 7px;
+  height: 7px;
   position: absolute;
-  left: 50%;
-  bottom: 0;
-  background: rgba(255, 255, 255, .28);
+  left: min(82%, 520px);
+  bottom: calc(20% - 3px);
+  border-radius: 50%;
+  background: var(--trust-copper);
 }
 
 .trust-empty-copy {
-  padding: clamp(2.2rem, 6vw, 6rem);
+  padding: clamp(2rem, 4vw, 4rem) 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -180,7 +183,7 @@
 .trust-empty-copy > p,
 .trust-credential-empty article > span {
   margin: 0 0 1rem;
-  color: var(--trust-copper);
+  color: var(--trust-copper-text);
   font-size: .67rem;
   font-weight: 700;
   letter-spacing: .12em;
@@ -203,25 +206,29 @@
   line-height: 1.75;
 }
 
-.trust-empty-copy ol {
+.trust-empty-copy ul {
   margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
   padding: 0;
   list-style: none;
+  display: grid;
+  gap: 1.6rem;
 }
 
 .trust-empty-copy li {
-  padding: 1.15rem 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-columns: 14px minmax(0, 1fr);
   gap: 1.25rem;
   align-items: start;
-  border-top: 1px solid var(--trust-line);
 }
 
-.trust-empty-copy li > span {
-  color: var(--trust-copper);
-  font-family: var(--trust-display);
-  font-size: .83rem;
+.trust-empty-copy li::before {
+  width: 6px;
+  height: 6px;
+  margin-top: .45rem;
+  border-radius: 50%;
+  background: var(--trust-copper);
+  content: '';
 }
 
 .trust-empty-copy li div {
@@ -240,7 +247,7 @@
 }
 
 .trust-dentists {
-  border-top: 1px solid var(--trust-line);
+  border: 0;
 }
 
 .trust-dentist {
@@ -248,7 +255,6 @@
   display: grid;
   grid-template-columns: minmax(300px, .72fr) minmax(0, 1fr);
   gap: clamp(3rem, 8vw, 9rem);
-  border-bottom: 1px solid var(--trust-line);
 }
 
 .trust-dentist:nth-child(even) .trust-dentist-portrait {
@@ -277,22 +283,13 @@
   letter-spacing: -.06em;
 }
 
-.trust-dentist-portrait > small {
-  position: absolute;
-  right: 1.4rem;
-  bottom: 1.25rem;
-  color: var(--trust-copper);
-  font-family: var(--trust-display);
-  font-size: 1rem;
-}
-
 .trust-dentist-copy {
   align-self: center;
 }
 
 .trust-dentist-copy header > p {
   margin: 0 0 .65rem;
-  color: var(--trust-copper);
+  color: var(--trust-copper-text);
   font-size: .7rem;
   font-weight: 700;
   letter-spacing: .1em;
@@ -446,27 +443,35 @@
 
 .trust-credential-empty {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: clamp(3rem, 9vw, 10rem);
-  border-top: 1px solid rgba(255, 255, 255, .2);
+  grid-template-columns: minmax(0, 1.25fr) minmax(260px, .75fr);
+  column-gap: clamp(4rem, 11vw, 13rem);
+  align-items: end;
 }
 
 .trust-credential-empty article {
-  min-height: 350px;
-  padding: clamp(2rem, 5vw, 4.5rem) 0;
+  min-height: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
 .trust-credential-empty article > svg {
-  margin-bottom: auto;
+  margin-bottom: clamp(2rem, 5vw, 4.5rem);
   color: #cfe0db;
 }
 
 .trust-credential-empty article > span {
-  margin-top: 4rem;
+  margin-top: 0;
   color: #c9a38c;
+}
+
+.trust-credential-empty article:first-child h3 {
+  font-size: clamp(2.8rem, 4.8vw, 5.2rem);
+}
+
+.trust-credential-empty article:nth-child(2) {
+  padding-bottom: clamp(.5rem, 2vw, 2rem);
 }
 
 .trust-credential-empty article h3 {
@@ -486,8 +491,8 @@
 
 .trust-credential-empty > p {
   grid-column: 1 / -1;
-  margin: 0;
-  padding-top: 1.3rem;
+  margin: clamp(4rem, 8vw, 8rem) 0 0;
+  padding-top: 1.5rem;
   display: flex;
   gap: .7rem;
   border-top: 1px solid rgba(255, 255, 255, .2);
@@ -503,15 +508,10 @@
 .trust-credential-list article {
   padding: clamp(2.1rem, 4vw, 3.5rem) 0;
   display: grid;
-  grid-template-columns: 70px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: clamp(1.5rem, 4vw, 4rem);
   align-items: start;
   border-bottom: 1px solid rgba(255, 255, 255, .2);
-}
-
-.trust-credential-list article > span {
-  color: #c9a38c;
-  font-family: var(--trust-display);
 }
 
 .trust-credential-list h3 {
@@ -656,8 +656,7 @@
   justify-content: space-between;
   gap: 3rem;
   background: var(--trust-surface);
-  border-top: 1px solid var(--trust-line);
-  border-bottom: 1px solid var(--trust-line);
+  border: 0;
 }
 
 .trust-socials > div {
@@ -692,7 +691,7 @@
   grid-template-columns: 24px minmax(0, 1fr) auto;
   gap: .65rem;
   align-items: center;
-  border-top: 1px solid var(--trust-ink);
+  border: 0;
   border-bottom: 1px solid var(--trust-ink);
   font-size: .76rem;
   font-weight: 700;
@@ -704,12 +703,12 @@
 
 .trust-socials li > a:hover {
   border-color: var(--trust-copper);
-  color: var(--trust-copper);
+  color: var(--trust-copper-text);
 }
 
 .trust-social-pending {
   grid-template-columns: 24px minmax(0, 1fr);
-  border-color: var(--trust-line);
+  border-bottom-color: var(--trust-line);
   color: var(--trust-muted);
 }
 
@@ -744,7 +743,8 @@
   }
 
   .trust-team-empty {
-    grid-template-columns: minmax(240px, .64fr) minmax(0, 1fr);
+    grid-template-columns: minmax(240px, .54fr) minmax(0, 1fr);
+    gap: 4rem;
   }
 
   .trust-dentist {
@@ -772,10 +772,11 @@
   .trust-team-empty {
     min-height: 0;
     grid-template-columns: 1fr;
+    gap: 2rem;
   }
 
   .trust-empty-monogram {
-    min-height: 300px;
+    min-height: 190px;
   }
 
   .trust-empty-monogram::before {
@@ -800,16 +801,17 @@
   }
 
   .trust-credential-empty article {
-    min-height: 290px;
-    border-bottom: 1px solid rgba(255, 255, 255, .2);
+    min-height: 0;
+    padding-bottom: 3.5rem;
+    border: 0;
   }
 
   .trust-credential-list article {
-    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .trust-credential-list article > a {
-    grid-column: 2;
+    grid-column: 1;
   }
 
   .trust-review-empty {
@@ -847,10 +849,7 @@
     padding: 2.2rem 1.25rem;
   }
 
-  .trust-empty-copy li {
-    grid-template-columns: 34px minmax(0, 1fr);
-    gap: .75rem;
-  }
+  .trust-empty-copy li { gap: .75rem; }
 
   .trust-qualifications li,
   .trust-review-list figcaption {

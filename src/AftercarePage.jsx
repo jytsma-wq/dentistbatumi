@@ -52,11 +52,11 @@ export default function AftercarePage({ lang, t, care, onLanguageChange }) {
           </figure>
         </section>
 
-        <div className="care-assurance" aria-label={care.assuranceLabel}>
+        <ul className="care-assurance" aria-label={care.assuranceLabel}>
           {care.assurances.map(([title, text]) => (
-            <div key={title}><div><strong>{title}</strong><small>{text}</small></div></div>
+            <li key={title}><strong>{title}</strong><small>{text}</small></li>
           ))}
-        </div>
+        </ul>
 
         <section className="care-journey section" aria-labelledby="journey-title">
           <div className="care-journey-intro">
@@ -135,7 +135,6 @@ export default function AftercarePage({ lang, t, care, onLanguageChange }) {
           <div className="handout-paper">
             <div className="handout-paper-head">
               <div><strong>BATUMI DENTAL CLINIC</strong><span>{care.passport.title}</span></div>
-              <div className="handout-seven">07</div>
             </div>
             <h3>{care.handout.documentTitle}</h3>
             <div className="handout-fields">
@@ -143,9 +142,9 @@ export default function AftercarePage({ lang, t, care, onLanguageChange }) {
             </div>
             <p className="handout-priority">{care.handout.priority}</p>
             <div className="handout-columns">
-              {care.handout.groups.map((group, index) => (
+              {care.handout.groups.map((group) => (
                 <section key={group.title}>
-                  <span>0{index + 1} · {group.label}</span><h4>{group.title}</h4>
+                  <span>{group.label}</span><h4>{group.title}</h4>
                   <ul>{group.items.map((item) => <li key={item}>{item}</li>)}</ul>
                 </section>
               ))}

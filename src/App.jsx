@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import {
   ArrowRight,
   CalendarDays,
@@ -38,10 +38,7 @@ import { diagnosticsContent } from './diagnostics-content'
 import { materialsContent } from './materials-content'
 import { privacyContent } from './privacy-content'
 import { pricesContent } from './prices-content'
-import AftercarePage from './AftercarePage'
 import NotFoundPage from './NotFoundPage'
-import PrivacyPage from './PrivacyPage'
-import PricesPage from './PricesPage'
 import { notFoundContent } from './not-found-content'
 import { ClinicSocialLinks, CredentialsTrustSection, ReviewsTrustSection, TeamTrustSection } from './TrustSections'
 import { SiteFooter, SiteHeader } from './SiteChrome'
@@ -50,7 +47,15 @@ import { usePageMeta } from './usePageMeta'
 
 const treatmentImages = clinicProfile.media.treatments
 
+const AftercarePage = lazy(() => import('./AftercarePage'))
+const PrivacyPage = lazy(() => import('./PrivacyPage'))
+const PricesPage = lazy(() => import('./PricesPage'))
+
 const clinicThemeStyle = clinicThemeVariables(clinicProfile)
+
+function RouteFallback() {
+  return <div className="route-loading" role="status" aria-live="polite"><span>{clinicProfile.brand.name}</span></div>
+}
 
 function goTo(id) {
   document.querySelector(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -94,7 +99,7 @@ function ClinicalTicker({ items, copy, running, onToggle }) {
           ))}
         </div>
       </div>
-      <button type="button" className="clinical-motion-toggle" onClick={onToggle} aria-label={running ? copy.pauseMotion : copy.startMotion}>
+      <button type="button" className="clinical-motion-toggle" onClick={onToggle} aria-label={running ? copy.pauseMotion : copy.startMotion} aria-pressed={running}>
         {running ? <Pause size={15} /> : <Play size={15} />}
         <span>{running ? copy.pauseMotion : copy.startMotion}</span>
       </button>
@@ -353,15 +358,15 @@ function App() {
   }
 
   if (page === 'aftercare') {
-    return <AftercarePage lang={lang} t={t} care={care} onLanguageChange={changeLanguage} />
+    return <Suspense fallback={<RouteFallback />}><AftercarePage lang={lang} t={t} care={care} onLanguageChange={changeLanguage} /></Suspense>
   }
 
   if (page === 'privacy') {
-    return <PrivacyPage lang={lang} t={t} care={care} onLanguageChange={changeLanguage} />
+    return <Suspense fallback={<RouteFallback />}><PrivacyPage lang={lang} t={t} care={care} onLanguageChange={changeLanguage} /></Suspense>
   }
 
   if (page === 'prices') {
-    return <PricesPage lang={lang} t={t} care={care} onLanguageChange={changeLanguage} />
+    return <Suspense fallback={<RouteFallback />}><PricesPage lang={lang} t={t} care={care} onLanguageChange={changeLanguage} /></Suspense>
   }
 
   const treatment = t.treatments[activeTreatment]
@@ -479,8 +484,8 @@ function App() {
             <h2 id="radiology-title">{diagnostics.title}</h2>
             <p className="radiology-intro">{diagnostics.text}</p>
             <dl>
-              {diagnostics.principles.map(([title, text], index) => (
-                <div key={title}><dt><span>0{index + 1}</span>{title}</dt><dd>{text}</dd></div>
+              {diagnostics.principles.map(([title, text]) => (
+                <div key={title}><dt>{title}</dt><dd>{text}</dd></div>
               ))}
             </dl>
             <p className="radiology-status"><ShieldCheck size={17} aria-hidden="true" />{diagnostics.status}</p>

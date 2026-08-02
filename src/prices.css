@@ -2,7 +2,7 @@
 
 .prices-hero {
   min-height: calc(100svh - 112px);
-  max-width: var(--container);
+  max-width: none;
   margin-inline: auto;
   display: grid;
   grid-template-columns: minmax(0, 1.12fr) minmax(390px, .88fr);
@@ -10,6 +10,7 @@
 }
 
 .prices-hero-copy {
+  min-width: 0;
   padding: clamp(5rem, 9vw, 9rem) clamp(2rem, 7vw, 7.5rem);
   display: flex;
   flex-direction: column;
@@ -27,11 +28,11 @@
   padding: clamp(3rem, 7vw, 7rem);
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 1fr auto;
-  align-items: end;
+  place-items: center;
   overflow: hidden;
-  background: var(--green-deep);
+  background:
+    radial-gradient(circle at 78% 22%, rgba(197, 217, 209, .16), transparent 28%),
+    linear-gradient(145deg, #174b43 0%, var(--green-deep) 55%, #092723 100%);
   color: white;
 }
 
@@ -41,23 +42,21 @@
   position: absolute;
   top: 12%;
   right: -22%;
-  border: 1px solid rgba(255,255,255,.18);
   border-radius: 50%;
-  box-shadow: 0 0 0 70px rgba(255,255,255,.025), 0 0 0 150px rgba(255,255,255,.018);
+  background: radial-gradient(circle, rgba(255,255,255,.1), rgba(255,255,255,.025) 42%, transparent 70%);
   content: '';
 }
 
 .prices-hero-composition > span { position: absolute; top: clamp(3rem, 7vw, 7rem); left: clamp(3rem, 7vw, 7rem); color: #b7d2ca; font-size: .7rem; font-weight: 700; letter-spacing: .24em; }
-.prices-hero-composition > strong { grid-column: 1 / -1; align-self: center; font-family: var(--display); font-size: clamp(10rem, 24vw, 23rem); font-weight: 400; line-height: .65; opacity: .9; }
-.prices-hero-composition > div { padding: 1rem 0 0; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,.28); color: #d9e7e2; }
-.prices-hero-composition > div + div { margin-left: clamp(1rem, 3vw, 2.6rem); }
-.prices-hero-composition i { font-size: .57rem; font-style: normal; letter-spacing: .08em; }
+.prices-hero-composition > strong { font-family: var(--display); font-size: clamp(10rem, 24vw, 23rem); font-weight: 400; line-height: .65; opacity: .88; }
+.prices-hero-symbols { position: absolute; right: clamp(3rem, 7vw, 7rem); bottom: clamp(3rem, 7vw, 7rem); left: clamp(3rem, 7vw, 7rem); display: flex; align-items: center; justify-content: space-between; color: rgba(217,231,226,.78); }
+.prices-hero-symbols svg { width: clamp(22px, 2vw, 31px); height: auto; stroke-width: 1.35; }
 
-.price-principles { max-width: var(--container); margin-inline: auto; padding: clamp(3rem, 6vw, 5.5rem) var(--gutter); display: grid; grid-template-columns: minmax(150px, .25fr) 1fr; gap: clamp(3rem, 7vw, 8rem); background: var(--surface-soft); }
+.price-principles { max-width: none; margin-inline: auto; padding: clamp(4rem, 7vw, 7rem) var(--gutter); display: grid; grid-template-columns: minmax(150px, .25fr) 1fr; gap: clamp(3rem, 7vw, 8rem); background: linear-gradient(180deg, var(--surface) 0%, var(--surface-soft) 100%); }
 .price-principles > p { margin: 0; color: var(--green); font-size: .62rem; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
 .price-principles > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(2rem, 4vw, 4.5rem); }
-.price-principles article { display: grid; grid-template-columns: 28px 1fr; gap: .35rem 1rem; align-content: start; }
-.price-principles article > span { grid-row: 1 / span 2; color: var(--copper); font-size: .58rem; font-weight: 700; }
+.price-principles article { display: grid; gap: .65rem; align-content: start; }
+.price-principles article::before { width: 32px; height: 1px; margin-bottom: .55rem; background: var(--copper); content: ''; }
 .price-principles strong { font-family: var(--display); color: var(--green-deep); font-size: clamp(1.35rem, 2vw, 1.8rem); font-weight: 500; }
 .price-principles small { color: var(--muted); font-size: .72rem; line-height: 1.65; }
 
@@ -68,8 +67,7 @@
 .price-catalogue-heading small { display: flex; align-items: center; gap: .5rem; color: var(--green); font-size: .68rem; font-weight: 700; }
 
 .price-category { padding: clamp(3rem, 5vw, 5.25rem) 0; display: grid; grid-template-columns: minmax(240px, .38fr) minmax(0, .62fr); gap: clamp(3rem, 9vw, 10rem); border-top: 1px solid rgba(23,75,67,.22); }
-.price-category > header { display: grid; grid-template-columns: 34px 1fr; gap: 1rem; align-items: start; }
-.price-category > header span { padding-top: .48rem; color: var(--copper); font-size: .58rem; font-weight: 700; }
+.price-category > header { display: block; }
 .price-category > header h3 { margin: 0; font-family: var(--display); color: var(--green-deep); font-size: clamp(2rem, 3.25vw, 3.5rem); font-weight: 500; letter-spacing: -.025em; }
 .price-item { padding: 1.7rem 0; border-top: 1px solid rgba(23,75,67,.15); }
 .price-item:first-child { padding-top: 0; border-top: 0; }
@@ -98,17 +96,16 @@
 .price-empty-state > div > strong { max-width: 620px; margin: .4rem 0 2rem; color: var(--green); font-family: var(--display); font-size: clamp(1.25rem, 2vw, 1.7rem); font-weight: 500; line-height: 1.35; }
 .price-empty-state .button { width: fit-content; }
 
-.price-transparency { max-width: var(--container); margin-inline: auto; padding: var(--section-space) var(--gutter); display: grid; grid-template-columns: minmax(310px, .75fr) minmax(0, 1.25fr); gap: clamp(5rem, 11vw, 12rem); background: var(--green-deep); color: white; }
+.price-transparency { max-width: none; margin-inline: auto; padding: var(--section-space) var(--gutter); display: grid; grid-template-columns: minmax(310px, .75fr) minmax(0, 1.25fr); gap: clamp(5rem, 11vw, 12rem); background: var(--green-deep); color: white; }
 .price-transparency-intro { position: sticky; top: 150px; align-self: start; }
 .price-transparency-intro h2 { max-width: 690px; }
 .price-transparency-intro > p:last-child { max-width: 600px; color: rgba(255,255,255,.62); line-height: 1.75; }
-.price-transparency-steps article { min-height: 190px; padding: 2.3rem 0; display: grid; grid-template-columns: 55px 1fr; gap: 1.5rem; border-top: 1px solid rgba(255,255,255,.22); }
-.price-transparency-steps article:last-child { border-bottom: 1px solid rgba(255,255,255,.22); }
-.price-transparency-steps span { padding-top: .35rem; color: #d9b49e; font-size: .6rem; font-weight: 700; }
-.price-transparency-steps h3 { margin: 0 0 .7rem; font-family: var(--display); font-size: clamp(1.8rem, 2.8vw, 2.8rem); font-weight: 500; }
+.price-transparency-steps { display: grid; gap: clamp(2.8rem, 5vw, 5.5rem); }
+.price-transparency-steps article { display: grid; grid-template-columns: minmax(180px, .68fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: start; }
+.price-transparency-steps h3 { margin: 0; font-family: var(--display); font-size: clamp(1.8rem, 2.8vw, 2.8rem); font-weight: 500; }
 .price-transparency-steps p { max-width: 680px; margin: 0; color: rgba(255,255,255,.62); font-size: .78rem; line-height: 1.75; }
 
-.price-closing { max-width: var(--container); min-height: 760px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); background: var(--surface); }
+.price-closing { max-width: none; min-height: 760px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); background: var(--surface); }
 .price-closing > div { padding: clamp(4rem, 8vw, 8rem) var(--gutter); display: flex; flex-direction: column; justify-content: center; }
 .price-closing h2 { max-width: 740px; }
 .price-closing > div > p:not(.eyebrow) { max-width: 620px; color: var(--muted); line-height: 1.75; }
@@ -144,13 +141,14 @@
   .prices-hero-composition { min-height: 420px; padding: 2rem var(--gutter); }
   .prices-hero-composition > span { top: 2rem; left: var(--gutter); }
   .prices-hero-composition > strong { font-size: clamp(9rem, 46vw, 12rem); }
+  .prices-hero-symbols { right: var(--gutter); bottom: 2rem; left: var(--gutter); }
   .price-catalogue { padding-inline: var(--gutter); }
   .price-item-summary { grid-template-columns: 1fr; gap: .8rem; }
   .price-amount { text-align: left; }
   .price-item-details dl, .price-scope { grid-template-columns: 1fr; }
   .price-empty-state { margin-inline: calc(var(--gutter) * -1); }
   .price-empty-state figure { min-height: 400px; }
-  .price-transparency-steps article { min-height: 0; grid-template-columns: 38px 1fr; }
+  .price-transparency-steps article { grid-template-columns: 1fr; gap: .7rem; }
   .price-closing > div { padding-inline: var(--gutter); }
   .price-closing figure { min-height: 440px; }
 }

@@ -150,17 +150,15 @@ export default function PricesPage({ lang, t, care, onLanguageChange }) {
           <div className="prices-hero-composition" aria-hidden="true">
             <span>GEL</span>
             <strong>₾</strong>
-            <div><ReceiptText /><i>01</i></div>
-            <div><ScanLine /><i>02</i></div>
-            <div><FileCheck2 /><i>03</i></div>
+            <div className="prices-hero-symbols"><ReceiptText /><ScanLine /><FileCheck2 /></div>
           </div>
         </section>
 
         <section className="price-principles" aria-label={copy.principlesLabel}>
           <p>{copy.principlesLabel}</p>
           <div>
-            {copy.principles.map(([title, text], index) => (
-              <article key={title}><span>0{index + 1}</span><strong>{title}</strong><small>{text}</small></article>
+            {copy.principles.map(([title, text]) => (
+              <article key={title}><strong>{title}</strong><small>{text}</small></article>
             ))}
           </div>
         </section>
@@ -176,10 +174,9 @@ export default function PricesPage({ lang, t, care, onLanguageChange }) {
 
           {categories.length > 0 ? (
             <div className="price-category-list">
-              {categories.map((category, categoryIndex) => (
+              {categories.map((category) => (
                 <section className="price-category" key={category.id} aria-labelledby={`price-category-${category.id}`}>
                   <header>
-                    <span>{String(categoryIndex + 1).padStart(2, '0')}</span>
                     <h3 id={`price-category-${category.id}`}>{copy.categories[category.id] || category.id}</h3>
                   </header>
                   <div className="price-items">
@@ -225,8 +222,8 @@ export default function PricesPage({ lang, t, care, onLanguageChange }) {
             <p>{copy.transparency.intro}</p>
           </div>
           <div className="price-transparency-steps">
-            {copy.transparency.steps.map(([number, title, text]) => (
-              <article key={number}><span>{number}</span><div><h3>{title}</h3><p>{text}</p></div></article>
+            {copy.transparency.steps.map(([, title, text]) => (
+              <article key={title}><h3>{title}</h3><p>{text}</p></article>
             ))}
           </div>
         </section>
