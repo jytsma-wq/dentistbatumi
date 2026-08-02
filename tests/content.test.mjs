@@ -4,6 +4,7 @@ import { content, languages } from '../src/content.js'
 import { aftercareContent } from '../src/aftercare-content.js'
 import { interfaceContent } from '../src/interface-content.js'
 import { privacyContent } from '../src/privacy-content.js'
+import { teamSectionContent } from '../src/team-content.js'
 import { legacyRouteTarget, parseRoute, routePath, supportedLocales } from '../src/routes.js'
 import worker from '../worker/index.js'
 
@@ -14,11 +15,13 @@ test('all six site languages have complete home and aftercare content', () => {
   assert.deepEqual(Object.keys(content), localeCodes)
   assert.deepEqual(Object.keys(aftercareContent), localeCodes)
   assert.deepEqual(Object.keys(privacyContent), localeCodes)
+  assert.deepEqual(Object.keys(teamSectionContent), localeCodes)
 
   for (const locale of localeCodes) {
     const home = content[locale]
     const care = aftercareContent[locale]
     const privacy = privacyContent[locale]
+    const team = teamSectionContent[locale]
 
     assert.equal(home.nav.length, 4, `${locale}: home navigation`)
     assert.equal(home.treatments.length, 10, `${locale}: treatments`)
@@ -33,11 +36,15 @@ test('all six site languages have complete home and aftercare content', () => {
     assert.ok(care.prototypeNote.length > 40, `${locale}: prototype boundary`)
     assert.equal(privacy.sections.length, 6, `${locale}: privacy topics`)
     assert.equal(privacy.checklist.length, 5, `${locale}: launch checklist`)
+    assert.equal(team.profiles.length, 3, `${locale}: team roles`)
+    assert.ok(team.title.length > 8, `${locale}: team title`)
+    assert.ok(team.verification.length > 40, `${locale}: team verification boundary`)
+    assert.ok(team.profiles.every(({ role, status, text }) => role && status && text), `${locale}: complete team profiles`)
   }
 })
 
 test('Batumi Dental Clinic branding and care principles are complete', () => {
-  assert.doesNotMatch(JSON.stringify({ content, aftercareContent, interfaceContent }), /Marea/i)
+  assert.doesNotMatch(JSON.stringify({ content, aftercareContent, interfaceContent, teamSectionContent }), /Marea/i)
   for (const locale of localeCodes) {
     assert.equal(interfaceContent[locale].principles.length, 6, `${locale}: care principles`)
     assert.ok(interfaceContent[locale].bookNow.length > 4, `${locale}: booking action`)
@@ -75,6 +82,9 @@ test('aftercare copy avoids invented emergency contacts or insurance prices', ()
 test('Georgian pages contain Georgian script', () => {
   assert.match(content.ka.heroText, /[ა-ჰ]/)
   assert.match(aftercareContent.ka.metaDescription, /[ა-ჰ]/)
+  assert.match(teamSectionContent.ka.title, /[ა-ჰ]/)
+  assert.match(content.ka.introText, /ბათუმის მცხოვრებლებს/, 'Georgian residents are named as a primary audience')
+  assert.match(interfaceContent.ka.careFeatureText, /ადგილობრივი/, 'aftercare explicitly includes local patients')
 })
 
 test('worker serves the SPA shell for localized deep links', async () => {

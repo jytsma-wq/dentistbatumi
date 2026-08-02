@@ -22,6 +22,7 @@ import { content, languages } from './content'
 import { aftercareContent } from './aftercare-content'
 import { interfaceContent } from './interface-content'
 import { privacyContent } from './privacy-content'
+import { teamSectionContent } from './team-content'
 import AftercarePage from './AftercarePage'
 import PrivacyPage from './PrivacyPage'
 import { SiteFooter, SiteHeader } from './SiteChrome'
@@ -40,6 +41,8 @@ const treatmentImages = [
   '/assets/dental-conversation.jpg',
   '/assets/dental-care.jpg',
 ]
+
+const teamProfileIcons = [Stethoscope, ShieldCheck, MessageCircle]
 
 function goTo(id) {
   document.querySelector(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -62,6 +65,7 @@ function App() {
   const care = aftercareContent[lang]
   const privacy = privacyContent[lang]
   const ui = interfaceContent[lang]
+  const team = teamSectionContent[lang]
 
   useEffect(() => {
     const legacyTarget = legacyRouteTarget(window.location.pathname)
@@ -369,9 +373,51 @@ function App() {
           </div>
         </section>
 
-        <section className="clinic-section section" id="kliniek" aria-labelledby="clinic-title">
+        <section className="team-section section" id="kliniek" aria-labelledby="team-title">
+          <div className="team-heading">
+            <div>
+              <p className="eyebrow light">{team.eyebrow}</p>
+              <h2 id="team-title">{team.title}</h2>
+            </div>
+            <p>{team.intro}</p>
+          </div>
+
+          <div className="team-stage">
+            <figure className="team-stage-media">
+              <img src="/assets/dental-care.jpg" alt={ui.photoAltCare} loading="lazy" />
+              <figcaption>{team.imageNote}</figcaption>
+            </figure>
+            <div className="team-profile-list">
+              {team.profiles.map((profile, index) => {
+                const TeamIcon = teamProfileIcons[index]
+                return (
+                  <article className="team-profile-card" key={profile.number}>
+                    <div className="team-profile-mark" aria-hidden="true">
+                      <span>{profile.number}</span>
+                      <TeamIcon size={22} strokeWidth={1.6} />
+                    </div>
+                    <div>
+                      <header>
+                        <h3>{profile.role}</h3>
+                        <span>{profile.status}</span>
+                      </header>
+                      <p>{profile.text}</p>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="team-action">
+            <div><ShieldCheck size={22} /><p>{team.verification}</p></div>
+            <button className="button button-light" onClick={() => goTo('#contact')}>{team.cta}<ArrowRight size={18} /></button>
+          </div>
+        </section>
+
+        <section className="clinic-section section" id="werkwijze" aria-labelledby="clinic-title">
           <div className="clinic-visual">
-            <img src="/assets/dental-care.jpg" alt={ui.photoAltCare} loading="lazy" />
+            <img src="/assets/dental-consultation.jpg" alt={ui.photoAltConsultation} loading="lazy" />
             <div className="clinic-visual-note"><Stethoscope size={19} /><span>{t.promise}</span></div>
           </div>
           <div className="clinic-content">
