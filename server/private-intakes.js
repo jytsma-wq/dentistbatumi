@@ -302,7 +302,7 @@ function detectFileKind(bytes) {
 }
 
 function looksLikeDicomDataset(bytes) {
-  if (bytes.length < 8) return false
+  if (bytes.length < 16) return false
 
   const commonGroups = new Set([
     0x0002, 0x0004, 0x0008, 0x0010, 0x0012, 0x0018, 0x0020, 0x0028,
@@ -314,18 +314,58 @@ function looksLikeDicomDataset(bytes) {
     'OB', 'OD', 'OF', 'OL', 'OV', 'OW', 'PN', 'SH', 'SL', 'SQ', 'SS', 'ST',
     'SV', 'TM', 'UC', 'UI', 'UL', 'UN', 'UR', 'US', 'UT', 'UV',
   ])
+  const longValueRepresentations = new Set([
+    'OB', 'OD', 'OF', 'OL', 'OV', 'OW', 'SQ', 'SV', 'UC', 'UN', 'UR', 'UT', 'UV',
+  ])
   const littleEndianGroup = bytes[0] | (bytes[1] << 8)
   const bigEndianGroup = (bytes[0] << 8) | bytes[1]
   const isLittleEndian = commonGroups.has(littleEndianGroup)
   const isBigEndian = !isLittleEndian && commonGroups.has(bigEndianGroup)
   if (!isLittleEndian && !isBigEndian) return false
 
-  if (explicitValueRepresentations.has(ascii(bytes, 4, 6))) return true
+  const readUint16 = (offset) => isLittleEndian
+    ? bytes[offset] | (bytes[offset + 1] << 8)
+    : (bytes[offset] << 8) | bytes[offset + 1]
+  const readUint32 = (offset) => isLittleEndian
+    ? (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24)) >>> 0
+    : ((bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3]) >>> 0
+  const isExplicit = explicitValueRepresentations.has(ascii(bytes, 4, 6))
+  let offset = 0
+  let elements = 0
+  let previousTag = -1
 
-  const valueLength = isLittleEndian
-    ? (bytes[4] | (bytes[5] << 8) | (bytes[6] << 16) | (bytes[7] << 24)) >>> 0
-    : ((bytes[4] << 24) | (bytes[5] << 16) | (bytes[6] << 8) | bytes[7]) >>> 0
-  return valueLength === 0xffffffff || valueLength <= bytes.length - 8
+  while (offset + 8 <= bytes.length && elements < 3) {
+    const group = readUint16(offset)
+    const element = readUint16(offset + 2)
+    const tag = group * 0x10000 + element
+    if (group > 0x7fe0 || tag < previousTag) return false
+
+    let headerBytes = 8
+    let valueLength
+    if (isExplicit) {
+      const valueRepresentation = ascii(bytes, offset + 4, offset + 6)
+      if (!explicitValueRepresentations.has(valueRepresentation)) return false
+      if (longValueRepresentations.has(valueRepresentation)) {
+        if (offset + 12 > bytes.length || bytes[offset + 6] !== 0 || bytes[offset + 7] !== 0) return false
+        headerBytes = 12
+        valueLength = readUint32(offset + 8)
+      } else {
+        valueLength = readUint16(offset + 6)
+      }
+    } else {
+      valueLength = readUint32(offset + 4)
+    }
+
+    if (valueLength === 0xffffffff || valueLength % 2 !== 0) return false
+    const nextOffset = offset + headerBytes + valueLength
+    if (nextOffset > bytes.length || nextOffset <= offset) return false
+
+    elements += 1
+    previousTag = tag
+    offset = nextOffset
+  }
+
+  return elements >= 3 || (elements === 2 && offset === bytes.length)
 }
 
 function ascii(bytes, start, end) {

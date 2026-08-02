@@ -89,8 +89,14 @@ test('stores an appointment request without clinical files', async () => {
 
 test('accepts valid DICOM datasets without a Part-10 preamble', async () => {
   const datasets = [
-    ['explicit-vr.dcm', new Uint8Array([0x08, 0x00, 0x05, 0x00, 0x43, 0x53, 0x02, 0x00, 0x45, 0x4e])],
-    ['implicit-vr.dcm', new Uint8Array([0x08, 0x00, 0x05, 0x00, 0x02, 0x00, 0x00, 0x00, 0x45, 0x4e])],
+    ['explicit-vr.dcm', new Uint8Array([
+      0x08, 0x00, 0x05, 0x00, 0x43, 0x53, 0x02, 0x00, 0x45, 0x4e,
+      0x08, 0x00, 0x08, 0x00, 0x43, 0x53, 0x02, 0x00, 0x4f, 0x52,
+    ])],
+    ['implicit-vr.dcm', new Uint8Array([
+      0x08, 0x00, 0x05, 0x00, 0x02, 0x00, 0x00, 0x00, 0x45, 0x4e,
+      0x08, 0x00, 0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x4f, 0x52,
+    ])],
   ]
 
   for (const [filename, bytes] of datasets) {
@@ -107,6 +113,53 @@ test('accepts valid DICOM datasets without a Part-10 preamble', async () => {
 
     assert.equal(response.status, 201, filename)
     assert.ok([...bucket.objects.keys()].some((key) => key.endsWith('.dcm')), filename)
+  }
+})
+
+test('rejects a truncated DICOM-like explicit VR header', async () => {
+  const baseRequest = createRequest('clinical')
+  const data = await baseRequest.formData()
+  data.delete('files')
+  data.append('files', new File([
+    new Uint8Array([0x08, 0x00, 0x05, 0x00, 0x50, 0x4e, 0xff, 0xff]),
+  ], 'truncated.dcm', { type: 'application/dicom' }))
+  const response = await handlePrivateIntakeRequest(new Request('http://localhost/api/clinical-files', {
+    method: 'POST',
+    headers: { origin: 'http://localhost', 'content-length': '2048' },
+    body: data,
+  }), new MemoryBucket(), 'clinical')
+
+  assert.equal(response.status, 400)
+  assert.equal((await response.json()).code, 'FILE_TYPE_REJECTED')
+})
+
+test('rejects DICOM datasets with a truncated third element', async () => {
+  const datasets = [
+    ['truncated-third-explicit.dcm', new Uint8Array([
+      0x08, 0x00, 0x05, 0x00, 0x43, 0x53, 0x02, 0x00, 0x45, 0x4e,
+      0x08, 0x00, 0x08, 0x00, 0x43, 0x53, 0x02, 0x00, 0x4f, 0x52,
+      0x08,
+    ])],
+    ['truncated-third-implicit.dcm', new Uint8Array([
+      0x08, 0x00, 0x05, 0x00, 0x02, 0x00, 0x00, 0x00, 0x45, 0x4e,
+      0x08, 0x00, 0x08, 0x00, 0x02, 0x00, 0x00, 0x00, 0x4f, 0x52,
+      0x08,
+    ])],
+  ]
+
+  for (const [filename, bytes] of datasets) {
+    const baseRequest = createRequest('clinical')
+    const data = await baseRequest.formData()
+    data.delete('files')
+    data.append('files', new File([bytes], filename, { type: 'application/dicom' }))
+    const response = await handlePrivateIntakeRequest(new Request('http://localhost/api/clinical-files', {
+      method: 'POST',
+      headers: { origin: 'http://localhost', 'content-length': '2048' },
+      body: data,
+    }), new MemoryBucket(), 'clinical')
+
+    assert.equal(response.status, 400, filename)
+    assert.equal((await response.json()).code, 'FILE_TYPE_REJECTED', filename)
   }
 })
 
