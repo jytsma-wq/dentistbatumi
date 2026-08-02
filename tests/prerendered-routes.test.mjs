@@ -14,6 +14,13 @@ import worker from '../worker/index.js'
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const clientDirectory = resolve(projectRoot, 'dist/client')
 const siteChromePath = resolve(projectRoot, 'src/SiteChrome.jsx')
+const htmlEntities = {
+  '&amp;': '&',
+  '&quot;': '"',
+  '&#x27;': "'",
+  '&lt;': '<',
+  '&gt;': '>',
+}
 
 function outputPath(locale, page) {
   return resolve(clientDirectory, `${routePath(locale, page).slice(1)}.html`)
@@ -22,11 +29,7 @@ function outputPath(locale, page) {
 function normalizeText(value) {
   return value
     .replace(/<[^>]+>/gu, ' ')
-    .replaceAll('&amp;', '&')
-    .replaceAll('&quot;', '"')
-    .replaceAll('&#x27;', "'")
-    .replaceAll('&lt;', '<')
-    .replaceAll('&gt;', '>')
+    .replace(/&(amp|quot|#x27|lt|gt);/gu, (entity) => htmlEntities[entity])
     .replace(/\s+/gu, ' ')
     .trim()
 }
@@ -37,6 +40,11 @@ function expectedHeading(locale, page) {
   if (page === 'prices') return pricesContent[locale].hero.title
   return `${content[locale].heroLine1} ${content[locale].heroAccent}`
 }
+
+test('text normalization decodes each HTML entity exactly once', () => {
+  assert.equal(normalizeText('&amp; &quot;care&quot; &#x27;today&#x27; &lt;3 &gt;2'), '& "care" \'today\' <3 >2')
+  assert.equal(normalizeText('&amp;#38;'), '&#38;')
+})
 
 test('build emits 24 localized canonical-route HTML documents with hydrated bodies', async () => {
   for (const locale of supportedLocales) {

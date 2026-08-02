@@ -147,6 +147,9 @@ test('country names and from-prices follow the active locale grammar', () => {
   }
   assert.match(formatCountryName('GE', 'ka'), /[ა-ჰ]/u)
   assert.notEqual(formatCountryName('GE', 'fr'), formatCountryName('GE', 'en'))
+  assert.equal(formatCountryName('LU', 'lb'), 'Lëtzebuerg')
+  assert.equal(formatCountryName('CH', 'ka'), 'შვეიცარია')
+  assert.equal(formatCountryName('XX', 'nl'), 'XX')
 
   const item = { price: { mode: 'from', min: 100 } }
   assert.match(formatPrice(item, 'GEL', 'nl', pricesContent.nl.labels), /^Vanaf /u)

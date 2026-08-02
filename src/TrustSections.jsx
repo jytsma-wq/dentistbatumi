@@ -73,7 +73,7 @@ function ContactAction({ label, href, onContact }) {
   )
 }
 
-function DentistProfile({ dentist, index, locale, copy }) {
+function DentistProfile({ dentist, locale, copy }) {
   const name = localizeTrustField(dentist.name, locale)
   const role = localizeTrustField(dentist.role, locale)
   const bio = localizeTrustField(dentist.bio, locale)
@@ -93,7 +93,6 @@ function DentistProfile({ dentist, index, locale, copy }) {
         ) : (
           <span aria-hidden="true">{initials(name)}</span>
         )}
-        <small aria-hidden="true">{String(index + 1).padStart(2, '0')}</small>
       </div>
 
       <div className="trust-dentist-copy">
@@ -184,7 +183,7 @@ export function TeamTrustSection({
         {dentists.length > 0 ? (
           <div className="trust-dentists">
             {dentists.map((dentist, index) => (
-              <DentistProfile key={dentist.id || `${localizeTrustField(dentist.name, lang)}-${index}`} dentist={dentist} index={index} locale={lang} copy={copy} />
+              <DentistProfile key={dentist.id || `${localizeTrustField(dentist.name, lang)}-${index}`} dentist={dentist} locale={lang} copy={copy} />
             ))}
           </div>
         ) : (
@@ -197,14 +196,13 @@ export function TeamTrustSection({
               <p>{copy.emptyLabel}</p>
               <h3>{copy.emptyTitle}</h3>
               <div className="trust-empty-intro">{copy.emptyText}</div>
-              <ol>
-                {copy.emptySlots.map(([number, title, text]) => (
-                  <li key={number}>
-                    <span>{number}</span>
+              <ul>
+                {copy.emptySlots.map(([, title, text]) => (
+                  <li key={title}>
                     <div><strong>{title}</strong><small>{text}</small></div>
                   </li>
                 ))}
-              </ol>
+              </ul>
             </div>
           </div>
         )}
@@ -234,7 +232,6 @@ export function CredentialsTrustSection({ lang = 'en', data = clinicTrustData, i
               const verificationUrl = credential.verificationUrl || credential.documentUrl
               return (
                 <article key={credential.id || `${title}-${index}`}>
-                  <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
                   <div>
                     <h3>{title}</h3>
                     <dl>

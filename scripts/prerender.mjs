@@ -34,7 +34,7 @@ try {
   for (const locale of supportedLocales) {
     for (const page of supportedPages) {
       const pathname = routePath(locale, page)
-      const appHtml = render({ locale, page })
+      const appHtml = await render({ locale, page })
       const localizedHtml = localizeHtmlShell(
         template.replace(rootOutlet, `<div id="root">${appHtml}</div>`),
         { locale, page },
