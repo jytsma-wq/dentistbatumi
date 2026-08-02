@@ -23,6 +23,20 @@ const legacySectionMap = {
   faq: 'vragen',
 }
 
+const legacyTreatmentMap = {
+  'general-dentistry': '01',
+  'emergency-dentist': '10',
+  'dental-implants': '06',
+  'crowns-bridges': '05',
+  'full-mouth-rehabilitation': '05',
+  'veneers-cosmetic-dentistry': '08',
+}
+
+export function normalizePathname(pathname = '/') {
+  const segments = pathname.split('/').filter(Boolean)
+  return segments.length > 0 ? `/${segments.join('/')}` : '/'
+}
+
 export function parseRoute(pathname = '/') {
   const segments = pathname.split('/').filter(Boolean)
   const requestedLocale = localeAliases[segments[0]] || segments[0]
@@ -61,6 +75,11 @@ export function legacyRouteTarget(pathname = '/', hash = '') {
   }
 
   if (['fees', 'fee-list', 'pricing', 'pricelist'].includes(segments[1])) return `/${locale}/prices`
+
+  const treatmentNumber = segments.length === 3 && segments[1] === 'treatments'
+    ? legacyTreatmentMap[segments[2]]
+    : null
+  if (treatmentNumber) return `/${locale}#behandeling-${treatmentNumber}`
 
   const section = legacySectionMap[segments[1]]
   if (section) return `/${locale}#${section}`

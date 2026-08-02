@@ -17,38 +17,11 @@ import {
   localizedValue,
 } from './clinic-prices'
 import { clinicImageProps, clinicProfile } from './clinic-profile'
+import { formatPrice, localeCodes } from './price-formatting'
 import { pricesContent } from './prices-content'
 import { SiteFooter, SiteHeader } from './SiteChrome'
 import { routePath } from './routes'
 import './prices.css'
-
-const localeCodes = {
-  nl: 'nl-NL',
-  de: 'de-DE',
-  fr: 'fr-FR',
-  lb: 'lb-LU',
-  en: 'en-GB',
-  ka: 'ka-GE',
-}
-
-function formatAmount(value, currency, lang) {
-  return new Intl.NumberFormat(localeCodes[lang] || lang, {
-    style: 'currency',
-    currency,
-    currencyDisplay: 'code',
-    maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
-  }).format(value)
-}
-
-function formatPrice(item, currency, lang, labels) {
-  const price = item.price
-  if (price.mode === 'onRequest') return labels.onRequest
-
-  const minimum = formatAmount(price.min, currency, lang)
-  if (price.mode === 'from') return `${labels.from} ${minimum}`
-  if (price.mode === 'range') return `${minimum} – ${formatAmount(price.max, currency, lang)}`
-  return minimum
-}
 
 function formatVisits(visits, labels, lang) {
   const minimum = Number.isFinite(visits?.min) ? visits.min : null
@@ -121,7 +94,7 @@ function PriceDetails({ item, lang, copy }) {
 }
 
 export default function PricesPage({ lang, t, care, onLanguageChange }) {
-  const copy = pricesContent[lang] || pricesContent.en
+  const copy = pricesContent[lang]
   const homePath = routePath(lang)
   const contactPath = `${homePath}#contact`
   const whatsappPath = `${homePath}#whatsapp`

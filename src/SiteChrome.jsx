@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, CalendarDays, ChevronDown, Globe2, Menu, MessageCircle, X } from 'lucide-react'
+import { browserUrlStateChangeEvent } from './browser-history'
 import { languages } from './content'
 import { FlagIcon } from './FlagIcon'
 import { clinicProfile, getClinicContactUrl } from './clinic-profile'
@@ -21,9 +22,38 @@ export function Brand({ light = false, homeHref = '/nl' }) {
 
 const serviceGroupIndexes = [[0, 1, 2, 3, 8, 9], [4, 5], [6, 7]]
 
-function localizedPageHref(languageCode, page) {
-  const hash = page !== 'notFound' && typeof window !== 'undefined' ? window.location.hash : ''
-  return `${routePath(languageCode, page)}${hash}`
+function useLocalizedUrlState(page) {
+  const [urlState, setUrlState] = useState({ search: '', hash: '' })
+
+  useEffect(() => {
+    function syncUrlState() {
+      const nextUrlState = {
+        search: window.location.search,
+        hash: page === 'notFound' ? '' : window.location.hash,
+      }
+      setUrlState((currentUrlState) => (
+        currentUrlState.search === nextUrlState.search && currentUrlState.hash === nextUrlState.hash
+          ? currentUrlState
+          : nextUrlState
+      ))
+    }
+
+    syncUrlState()
+    window.addEventListener('popstate', syncUrlState)
+    window.addEventListener('hashchange', syncUrlState)
+    window.addEventListener(browserUrlStateChangeEvent, syncUrlState)
+    return () => {
+      window.removeEventListener('popstate', syncUrlState)
+      window.removeEventListener('hashchange', syncUrlState)
+      window.removeEventListener(browserUrlStateChangeEvent, syncUrlState)
+    }
+  }, [page])
+
+  return urlState
+}
+
+function localizedPageHref(languageCode, page, { search = '', hash = '' }) {
+  return `${routePath(languageCode, page)}${search}${hash}`
 }
 
 export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSelect }) {
@@ -38,6 +68,7 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
   const servicesCloseTimer = useRef(null)
   const languageButton = useRef(null)
   const languageNavigation = useRef(null)
+  const localizedUrlState = useLocalizedUrlState(page)
   const ui = interfaceContent[lang]
   const experience = experienceContent[lang]
   const homePath = routePath(lang)
@@ -149,6 +180,10 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
   function scheduleServicesClose() {
     cancelServicesClose()
     servicesCloseTimer.current = window.setTimeout(() => {
+      if (servicesNavigation.current?.contains(document.activeElement)) {
+        servicesCloseTimer.current = null
+        return
+      }
       setServicesOpen(false)
       servicesCloseTimer.current = null
     }, 220)
@@ -209,6 +244,8 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
             <div
               id="services-menu"
               className={`services-mega ${servicesOpen ? 'open' : ''}`}
+              aria-hidden={!servicesOpen}
+              inert={servicesOpen ? undefined : ''}
               onPointerEnter={cancelServicesClose}
               onPointerLeave={scheduleServicesClose}
               onKeyDown={(event) => {
@@ -271,11 +308,11 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
               <span className="language-code">{currentLanguage.short}</span>
               <ChevronDown size={14} aria-hidden="true" />
             </button>
-            <nav id="language-options" className="language-options" aria-label={t.languageLabel}>
+            <nav id="language-options" className="language-options" aria-label={t.languageLabel} aria-hidden={!languageOpen} inert={languageOpen ? undefined : ''}>
               <span className="language-options-title">{t.languageLabel}</span>
               {languages.map((language) => (
                 <a
-                  href={localizedPageHref(language.code, page)}
+                  href={localizedPageHref(language.code, page, localizedUrlState)}
                   hrefLang={language.code}
                   lang={language.code}
                   aria-current={lang === language.code ? 'page' : undefined}
@@ -312,13 +349,13 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
             {!menuOpen && <span>{t.menu}</span>}
           </button>
         </div>
-        <nav ref={mobileNav} id="mobile-menu" className={`mobile-nav ${menuOpen ? 'open' : ''}`} aria-label={t.mobileNavLabel}>
+        <nav ref={mobileNav} id="mobile-menu" className={`mobile-nav ${menuOpen ? 'open' : ''}`} aria-label={t.mobileNavLabel} aria-hidden={!menuOpen} inert={menuOpen ? undefined : ''}>
           <div className="mobile-nav-inner">
             <div className="mobile-services-disclosure">
               <button type="button" className="mobile-service-toggle" aria-expanded={mobileServicesOpen} aria-controls="mobile-service-list" onClick={() => setMobileServicesOpen((open) => !open)}>
                 <strong>{homeNav[0][0]}</strong><ChevronDown size={19} />
               </button>
-              <div id="mobile-service-list" className={`mobile-service-list ${mobileServicesOpen ? 'open' : ''}`}>
+              <div id="mobile-service-list" className={`mobile-service-list ${mobileServicesOpen ? 'open' : ''}`} aria-hidden={!mobileServicesOpen} inert={mobileServicesOpen ? undefined : ''}>
                 {t.treatments.map((treatment, index) => (
                   <a href={page === 'home' ? `#behandeling-${treatment.number}` : `${homePath}#behandeling-${treatment.number}`} onClick={(event) => selectService(event, index)} key={treatment.name}>
                     {treatment.name}
@@ -348,6 +385,7 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
 }
 
 export function SiteFooter({ lang, page, t, care, onLanguageChange }) {
+  const localizedUrlState = useLocalizedUrlState(page)
   const ui = interfaceContent[lang]
   const homePath = routePath(lang)
   const carePath = routePath(lang, 'aftercare')
@@ -364,7 +402,7 @@ export function SiteFooter({ lang, page, t, care, onLanguageChange }) {
         <div className="footer-brand-block">
           <a className="footer-logo-art" href={homePath} aria-label={clinicProfile.brand.name} style={{ backgroundImage: `url(${clinicProfile.brand.wordmarkAsset})` }}>
             <strong>{clinicProfile.brand.shortName}</strong>
-            <span>{clinicProfile.brand.descriptor}</span>
+            <span>{ui.brandDescriptor}</span>
           </a>
           <p>{page === 'aftercare' ? care.footerLine : t.footerLine}</p>
           <span>{t.location}</span>
@@ -375,7 +413,7 @@ export function SiteFooter({ lang, page, t, care, onLanguageChange }) {
           <a href={`${homePath}#behandelingen`}>{t.nav[0][0]}</a>
           <a href={pricesPath}>{pricesContent[lang].navLabel}</a>
           <a href={`${homePath}#kliniek`}>{t.nav[1][0]}</a>
-          <a href={`${homePath}#reviews`}>{(trustContent[lang] || trustContent.en).reviews.eyebrow}</a>
+          <a href={`${homePath}#reviews`}>{trustContent[lang].reviews.eyebrow}</a>
           <a href={`${homePath}#patienten`}>{t.nav[2][0]}</a>
           <a href={carePath}>{care.navLabel}</a>
           <a href={privacyPath}>{privacyContent[lang].navLabel}</a>
@@ -388,11 +426,11 @@ export function SiteFooter({ lang, page, t, care, onLanguageChange }) {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© 2026 {clinicProfile.brand.name.toUpperCase()}</span>
+        <span>© {new Date().getUTCFullYear()} {clinicProfile.brand.name.toUpperCase()}</span>
         <div className="footer-languages" aria-label={t.languageLabel}>
           {languages.map((language) => (
             <a
-              href={localizedPageHref(language.code, page)}
+              href={localizedPageHref(language.code, page, localizedUrlState)}
               hrefLang={language.code}
               lang={language.code}
               className={lang === language.code ? 'active' : ''}

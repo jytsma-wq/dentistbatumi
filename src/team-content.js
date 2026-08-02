@@ -45,7 +45,7 @@ export const teamSectionContent = {
     imageNote: 'Konzeptbild · keng Mataarbechter vun der Klinik',
     verification: 'Dës Plaze sinn nach keng Mataarbechterprofiler. Mir huelen keng Nimm, Titelen, Spezialisatiounen oder Registréierungen un.',
     profiles: [
-      { number: '01', role: 'Behandelnd Zänndoktesch oder behandelnden Zänndokter', status: 'Profil no der Verifizéierung', text: 'Hei kënnt déi verifizéiert Persoun, déi Är Ënnersichung, Diagnos a Behandlungspropositioun mat Iech beschwätzt.' },
+      { number: '01', role: 'Behandelnd Persoun', status: 'Profil no der Verifizéierung', text: 'Hei kënnt déi verifizéiert Persoun, déi Är Ënnersichung, Diagnos a Behandlungspropositioun mat Iech beschwätzt.' },
       { number: '02', role: 'Klinesch Ënnerstëtzung', status: 'Profil no der Verifizéierung', text: 'Hei kënnt déi verifizéiert Persoun, déi Är Behandlung praktesch a klinesch ënnerstëtzt.' },
       { number: '03', role: 'Patientekoordinatioun', status: 'Profil no der Verifizéierung', text: 'Hei kënnt de verifizéierte Kontakt fir Planung, Sproochpreferenz a praktesch Froen zu Ärem Rendez-vous oder Openthalt.' },
     ],

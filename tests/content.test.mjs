@@ -132,8 +132,8 @@ test('clinic product catalog is ready for verified facts without showing empty c
     brand: 'Verified brand',
     origin: 'DE',
     documentation: [
-      { title: 'Unsafe', url: 'http://example.com/file.pdf' },
-      { title: 'Product sheet', url: 'https://example.com/file.pdf' },
+      { title: { en: 'Unsafe' }, url: 'http://example.com/file.pdf' },
+      { title: { en: 'Product sheet', fr: 'Fiche produit' }, url: 'https://example.com/file.pdf' },
     ],
     warranty: { provider: '', durationMonths: 24, termsUrl: 'https://example.com/warranty' },
   }
@@ -141,6 +141,8 @@ test('clinic product catalog is ready for verified facts without showing empty c
   assert.equal(hasProductDetails(verifiedProduct), true)
   assert.deepEqual(getVisibleProductFacts(verifiedProduct).map(({ key }) => key), ['brand', 'origin'])
   assert.deepEqual(getVisibleProductDocuments(verifiedProduct).map(({ title }) => title), ['Product sheet'])
+  assert.deepEqual(getVisibleProductDocuments(verifiedProduct, 'fr').map(({ title }) => title), ['Fiche produit'])
+  assert.deepEqual(getVisibleProductDocuments(verifiedProduct, 'ka').map(({ title }) => title), [''])
   assert.equal(isSafeProductUrl('https://example.com/file.pdf'), true)
   assert.equal(isSafeProductUrl('javascript:alert(1)'), false)
 })
@@ -221,7 +223,7 @@ test('worker serves localized, noindex and secured HTML for deep links', async (
         ifNoneMatch: request.headers.get('if-none-match'),
         range: request.headers.get('range'),
       })
-      if (pathname === '/') {
+      if (pathname === '/fr/aftercare') {
         return new Response('<!doctype html><html lang="nl"><head><meta name="description" content="Default"><title>Batumi Dental Clinic</title></head><body></body></html>', {
           headers: {
             'Content-Type': 'text/html; charset=utf-8',
@@ -262,7 +264,7 @@ test('worker serves localized, noindex and secured HTML for deep links', async (
   assert.equal(response.headers.get('etag'), null)
   assert.equal(response.headers.get('last-modified'), null)
   assert.match(response.headers.get('content-security-policy'), /frame-ancestors 'none'/)
-  assert.deepEqual(requestedPaths, ['/'])
+  assert.deepEqual(requestedPaths, ['/fr/aftercare'])
   assert.deepEqual(forwardedHeaders, [{ method: 'GET', ifNoneMatch: null, range: null }])
 })
 

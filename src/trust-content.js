@@ -7,6 +7,7 @@ export const trustContent = {
       emptyTitle: 'Uw team wordt het gezicht van deze website.',
       emptyText: 'Deze verkoopdemo toont bewust nog geen verzonnen medewerkers. Voeg de geverifieerde profielen van de kliniek toe en deze ruimte verandert in een persoonlijke kennismaking.',
       emptyLabel: 'Klaar voor echte kliniekgegevens',
+      emptyMonogram: 'TEAM',
       emptySlots: [
         ['01', 'Tandartsprofiel', 'Naam, portret, rol en persoonlijke visie'],
         ['02', 'Professionele kwalificaties', 'Opleiding, registratie en relevante nascholing'],
@@ -59,6 +60,7 @@ export const trustContent = {
       emptyTitle: 'Ihr Team wird zum Gesicht dieser Website.',
       emptyText: 'Diese Verkaufsdemo zeigt bewusst keine erfundenen Mitarbeitenden. Ergänzen Sie die verifizierten Klinikprofile und dieser Bereich wird zu einer persönlichen Vorstellung.',
       emptyLabel: 'Bereit für echte Klinikdaten',
+      emptyMonogram: 'TEAM',
       emptySlots: [
         ['01', 'Zahnarztprofil', 'Name, Porträt, Funktion und persönliche Haltung'],
         ['02', 'Berufliche Qualifikationen', 'Ausbildung, Registrierung und relevante Fortbildung'],
@@ -111,6 +113,7 @@ export const trustContent = {
       emptyTitle: 'Votre équipe deviendra le visage de ce site.',
       emptyText: 'Cette démonstration commerciale ne présente volontairement aucun membre fictif. Ajoutez les profils vérifiés de la clinique et cet espace deviendra une rencontre personnelle.',
       emptyLabel: 'Prêt pour les données réelles de la clinique',
+      emptyMonogram: 'ÉQUIPE',
       emptySlots: [
         ['01', 'Profil du dentiste', 'Nom, portrait, fonction et vision personnelle'],
         ['02', 'Qualifications professionnelles', 'Formation, inscription et perfectionnement pertinent'],
@@ -163,6 +166,7 @@ export const trustContent = {
       emptyTitle: 'Äert Team gëtt d’Gesiicht vun dëser Website.',
       emptyText: 'Dës Verkafsdemonstratioun weist bewosst keng erfonnt Mataarbechter. Füügt déi verifizéiert Klinikprofiller bäi an dëse Raum gëtt zu enger perséinlecher Virstellung.',
       emptyLabel: 'Bereet fir echt Klinikdaten',
+      emptyMonogram: 'EKIPP',
       emptySlots: [
         ['01', 'Profil vum Zänndokter', 'Numm, Portrait, Roll a perséinlech Approche'],
         ['02', 'Berufflech Qualifikatiounen', 'Ausbildung, Registréierung a relevant Weiderbildung'],
@@ -215,6 +219,7 @@ export const trustContent = {
       emptyTitle: 'Your team will become the face of this website.',
       emptyText: 'This sales demo deliberately shows no fictional staff. Add the clinic’s verified profiles and this space becomes a personal introduction.',
       emptyLabel: 'Ready for real clinic data',
+      emptyMonogram: 'TEAM',
       emptySlots: [
         ['01', 'Dentist profile', 'Name, portrait, role and personal approach'],
         ['02', 'Professional qualifications', 'Education, registration and relevant continuing training'],
@@ -267,6 +272,7 @@ export const trustContent = {
       emptyTitle: 'თქვენი გუნდი ამ ვებსაიტის სახე გახდება.',
       emptyText: 'ეს გასაყიდი დემო განზრახ არ აჩვენებს გამოგონილ თანამშრომლებს. დაამატეთ კლინიკის გადამოწმებული პროფილები და ეს სივრცე პირად გაცნობად გადაიქცევა.',
       emptyLabel: 'მზადაა კლინიკის რეალური მონაცემებისთვის',
+      emptyMonogram: 'გუნდი',
       emptySlots: [
         ['01', 'სტომატოლოგის პროფილი', 'სახელი, პორტრეტი, როლი და პირადი მიდგომა'],
         ['02', 'პროფესიული კვალიფიკაციები', 'განათლება, რეგისტრაცია და შესაბამისი შემდგომი სწავლება'],
