@@ -2,12 +2,12 @@ import { extraHomeContent } from './home-content-extra.js'
 import { treatmentContent } from './treatment-content.js'
 
 export const languages = [
-  { code: 'nl', short: 'NL', label: 'Nederlands' },
-  { code: 'de', short: 'DE', label: 'Deutsch' },
-  { code: 'fr', short: 'FR', label: 'Français' },
-  { code: 'lb', short: 'LU', label: 'Lëtzebuergesch' },
-  { code: 'en', short: 'EN', label: 'English' },
-  { code: 'ka', short: 'KA', label: 'ქართული' },
+  { code: 'nl', short: 'NL', label: 'Nederlands', flag: '🇳🇱' },
+  { code: 'de', short: 'DE', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'fr', short: 'FR', label: 'Français', flag: '🇫🇷' },
+  { code: 'lb', short: 'LU', label: 'Lëtzebuergesch', flag: '🇱🇺' },
+  { code: 'en', short: 'EN', label: 'English', flag: '🇬🇧' },
+  { code: 'ka', short: 'KA', label: 'ქართული', flag: '🇬🇪' },
 ]
 
 export const content = {

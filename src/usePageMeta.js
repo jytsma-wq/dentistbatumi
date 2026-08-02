@@ -21,7 +21,7 @@ function upsertLink(selector, attributes) {
   Object.entries(attributes).forEach(([name, value]) => element.setAttribute(name, value))
 }
 
-export function usePageMeta({ locale, page, title, description }) {
+export function usePageMeta({ locale, page, title, description, noIndex = false }) {
   useEffect(() => {
     const canonical = `${SITE_ORIGIN}${routePath(locale, page)}`
     document.documentElement.lang = locale
@@ -33,6 +33,7 @@ export function usePageMeta({ locale, page, title, description }) {
     upsertMeta('meta[property="og:url"]', { property: 'og:url', content: canonical })
     upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: title })
     upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: description })
+    upsertMeta('meta[name="robots"]', { name: 'robots', content: noIndex ? 'noindex, nofollow' : 'index, follow' })
     upsertLink('link[rel="canonical"]', { rel: 'canonical', href: canonical })
 
     document.head.querySelectorAll('link[data-bdc-alternate]').forEach((element) => element.remove())
@@ -44,5 +45,5 @@ export function usePageMeta({ locale, page, title, description }) {
       alternate.dataset.bdcAlternate = 'true'
       document.head.appendChild(alternate)
     })
-  }, [description, locale, page, title])
+  }, [description, locale, noIndex, page, title])
 }

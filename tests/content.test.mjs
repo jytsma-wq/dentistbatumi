@@ -14,6 +14,28 @@ import {
 import { materialsContent } from '../src/materials-content.js'
 import { privacyContent } from '../src/privacy-content.js'
 import { teamSectionContent } from '../src/team-content.js'
+import { experienceContent } from '../src/experience-content.js'
+import { diagnosticsContent } from '../src/diagnostics-content.js'
+import {
+  clinicPriceEntries,
+  clinicPriceList,
+  getVisiblePriceCategories,
+  isVisiblePriceItem,
+  priceCategoryOrder,
+  priceServiceTemplates,
+} from '../src/clinic-prices.js'
+import { pricesContent } from '../src/prices-content.js'
+import {
+  clinicTrustData,
+  getPublishedClinicCredentials,
+  getPublishedDentists,
+  getPublishedReviews,
+  getPublishedSocials,
+  isSafeSocialUrl,
+  isSafeTrustUrl,
+} from '../src/clinic-trust-data.js'
+import { clinicProfile, getClinicContactUrl } from '../src/clinic-profile.js'
+import { trustContent } from '../src/trust-content.js'
 import { legacyRouteTarget, parseRoute, routePath, supportedLocales } from '../src/routes.js'
 import worker from '../worker/index.js'
 
@@ -21,11 +43,16 @@ const localeCodes = languages.map(({ code }) => code)
 
 test('all six site languages have complete home and aftercare content', () => {
   assert.deepEqual(localeCodes, ['nl', 'de', 'fr', 'lb', 'en', 'ka'])
+  assert.deepEqual(languages.map(({ flag }) => flag), ['🇳🇱', '🇩🇪', '🇫🇷', '🇱🇺', '🇬🇧', '🇬🇪'])
   assert.deepEqual(Object.keys(content), localeCodes)
   assert.deepEqual(Object.keys(aftercareContent), localeCodes)
   assert.deepEqual(Object.keys(privacyContent), localeCodes)
   assert.deepEqual(Object.keys(teamSectionContent), localeCodes)
   assert.deepEqual(Object.keys(materialsContent), localeCodes)
+  assert.deepEqual(Object.keys(pricesContent), localeCodes)
+  assert.deepEqual(Object.keys(trustContent), localeCodes)
+  assert.deepEqual(Object.keys(experienceContent), localeCodes)
+  assert.deepEqual(Object.keys(diagnosticsContent), localeCodes)
 
   for (const locale of localeCodes) {
     const home = content[locale]
@@ -33,6 +60,10 @@ test('all six site languages have complete home and aftercare content', () => {
     const privacy = privacyContent[locale]
     const team = teamSectionContent[locale]
     const materials = materialsContent[locale]
+    const prices = pricesContent[locale]
+    const trust = trustContent[locale]
+    const experience = experienceContent[locale]
+    const diagnostics = diagnosticsContent[locale]
 
     assert.equal(home.nav.length, 4, `${locale}: home navigation`)
     assert.equal(home.treatments.length, 10, `${locale}: treatments`)
@@ -55,7 +86,35 @@ test('all six site languages have complete home and aftercare content', () => {
     assert.ok(materials.categories.every(({ title, text }) => title.length > 3 && text.length > 40), `${locale}: complete material explanations`)
     assert.ok(materials.transparencyNote.length > 60, `${locale}: material transparency promise`)
     assert.ok(materials.verifiedOnly.length > 30, `${locale}: verified-product boundary`)
+    assert.ok(prices.navLabel.length > 3, `${locale}: price navigation`)
+    assert.equal(Object.keys(prices.categories).length, priceCategoryOrder.length, `${locale}: price categories`)
+    assert.equal(Object.keys(prices.services).length, Object.values(priceServiceTemplates).flat().length, `${locale}: price service labels`)
+    assert.ok(trust.team.title.length > 10, `${locale}: team trust title`)
+    assert.ok(trust.credentials.title.length > 10, `${locale}: credential title`)
+    assert.ok(trust.reviews.title.length > 10, `${locale}: review title`)
+    assert.ok(experience.priceTitle.length > 10, `${locale}: price invitation`)
+    assert.equal(diagnostics.principles.length, 3, `${locale}: diagnostic principles`)
+    assert.ok(diagnostics.title.length > 12, `${locale}: diagnostic title`)
   }
+})
+
+test('clinic-specific prices and proof fail closed until verified', () => {
+  assert.deepEqual(clinicPriceEntries, {})
+  assert.deepEqual(getVisiblePriceCategories(clinicPriceList), [])
+  assert.deepEqual(getPublishedDentists(clinicTrustData, 'nl'), [])
+  assert.deepEqual(getPublishedClinicCredentials(clinicTrustData, 'nl'), [])
+  assert.deepEqual(getPublishedReviews(clinicTrustData, 'nl'), [])
+  assert.deepEqual(getPublishedSocials(clinicTrustData), {})
+  assert.equal(isSafeTrustUrl('https://example.com/profile'), true)
+  assert.equal(isSafeTrustUrl('http://example.com/profile'), false)
+  assert.equal(isSafeTrustUrl('javascript:alert(1)'), false)
+  assert.equal(isSafeSocialUrl('https://www.facebook.com/verified-clinic', 'facebook'), true)
+  assert.equal(isSafeSocialUrl('https://example.com/verified-clinic', 'facebook'), false)
+  assert.equal(isVisiblePriceItem({ enabled: true, verified: true, price: { mode: 'fixed', min: 100 } }), false, 'a visible fee requires a verification date')
+  assert.equal(isVisiblePriceItem({ enabled: true, verified: true, lastVerified: '2026-08-02', price: { mode: 'fixed', min: 100 } }), true)
+  assert.equal(getClinicContactUrl('whatsapp'), '', 'demo does not invent a WhatsApp destination')
+  assert.equal(getClinicContactUrl('booking'), '', 'demo does not invent a booking destination')
+  assert.equal(clinicProfile.templateMode, true, 'sales demo stays noindex until onboarding is complete')
 })
 
 test('clinic product catalog is ready for verified facts without showing empty claims', () => {
@@ -98,9 +157,11 @@ test('localized routes resolve and preserve the requested page', () => {
   assert.deepEqual(parseRoute('/fr/aftercare'), { locale: 'fr', page: 'aftercare' })
   assert.deepEqual(parseRoute('/ka'), { locale: 'ka', page: 'home' })
   assert.deepEqual(parseRoute('/fr/privacy'), { locale: 'fr', page: 'privacy' })
+  assert.deepEqual(parseRoute('/ka/prices'), { locale: 'ka', page: 'prices' })
   assert.deepEqual(parseRoute('/unsupported/aftercare'), { locale: 'nl', page: 'home' })
   assert.equal(routePath('de', 'aftercare'), '/de/aftercare')
   assert.equal(routePath('ka', 'privacy'), '/ka/privacy')
+  assert.equal(routePath('fr', 'prices'), '/fr/prices')
   assert.equal(routePath('lb'), '/lb')
   assert.equal(legacyRouteTarget('/nl/treatments'), '/nl#behandelingen')
   assert.equal(legacyRouteTarget('/nl/treatments/implants'), '/nl#behandelingen')
@@ -111,6 +172,8 @@ test('localized routes resolve and preserve the requested page', () => {
   assert.equal(legacyRouteTarget('/fr/contact'), '/fr#contact')
   assert.equal(legacyRouteTarget('/ka/aftercare'), null)
   assert.equal(legacyRouteTarget('/en/privacy'), null)
+  assert.equal(legacyRouteTarget('/nl/prices'), null)
+  assert.equal(legacyRouteTarget('/de/fees'), '/de/prices')
 })
 
 test('aftercare copy avoids invented emergency contacts or insurance prices', () => {
@@ -124,6 +187,8 @@ test('Georgian pages contain Georgian script', () => {
   assert.match(content.ka.heroText, /[ა-ჰ]/)
   assert.match(aftercareContent.ka.metaDescription, /[ა-ჰ]/)
   assert.match(teamSectionContent.ka.title, /[ა-ჰ]/)
+  assert.match(pricesContent.ka.metaDescription, /[ა-ჰ]/)
+  assert.match(trustContent.ka.team.title, /[ა-ჰ]/)
   assert.match(content.ka.introText, /ბათუმის მცხოვრებლებს/, 'Georgian residents are named as a primary audience')
   assert.match(interfaceContent.ka.careFeatureText, /ადგილობრივი/, 'aftercare explicitly includes local patients')
 })

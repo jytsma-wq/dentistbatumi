@@ -1,4 +1,5 @@
 export const supportedLocales = ['nl', 'de', 'fr', 'lb', 'en', 'ka']
+export const supportedPages = ['home', 'aftercare', 'privacy', 'prices']
 
 const legacySectionMap = {
   treatments: 'behandelingen',
@@ -23,7 +24,7 @@ export function parseRoute(pathname = '/') {
   const hasSupportedLocale = supportedLocales.includes(segments[0])
   const locale = hasSupportedLocale ? segments[0] : 'nl'
   const requestedPage = segments[1]
-  const page = hasSupportedLocale && ['aftercare', 'privacy'].includes(requestedPage)
+  const page = hasSupportedLocale && ['aftercare', 'privacy', 'prices'].includes(requestedPage)
     ? requestedPage
     : 'home'
 
@@ -32,12 +33,14 @@ export function parseRoute(pathname = '/') {
 
 export function routePath(locale, page = 'home') {
   const safeLocale = supportedLocales.includes(locale) ? locale : 'nl'
-  return ['aftercare', 'privacy'].includes(page) ? `/${safeLocale}/${page}` : `/${safeLocale}`
+  return ['aftercare', 'privacy', 'prices'].includes(page) ? `/${safeLocale}/${page}` : `/${safeLocale}`
 }
 
 export function legacyRouteTarget(pathname = '/') {
   const segments = pathname.split('/').filter(Boolean)
-  if (!supportedLocales.includes(segments[0]) || ['aftercare', 'privacy'].includes(segments[1])) return null
+  if (!supportedLocales.includes(segments[0]) || ['aftercare', 'privacy', 'prices'].includes(segments[1])) return null
+
+  if (['fees', 'fee-list', 'pricing', 'pricelist'].includes(segments[1])) return `/${segments[0]}/prices`
 
   const section = legacySectionMap[segments[1]]
   return section ? `/${segments[0]}#${section}` : null

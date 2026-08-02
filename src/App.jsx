@@ -11,7 +11,9 @@ import {
   Globe2,
   MessageCircle,
   MapPin,
+  Pause,
   Plane,
+  Play,
   ScanLine,
   ShieldCheck,
   Stethoscope,
@@ -29,29 +31,23 @@ import {
   treatmentProductCatalog,
 } from './clinic-products'
 import { interfaceContent } from './interface-content'
+import { clinicProfile, clinicThemeVariables, getClinicContactUrl } from './clinic-profile'
+import { experienceContent } from './experience-content'
+import { diagnosticsContent } from './diagnostics-content'
 import { materialsContent } from './materials-content'
 import { privacyContent } from './privacy-content'
-import { teamSectionContent } from './team-content'
+import { pricesContent } from './prices-content'
 import AftercarePage from './AftercarePage'
 import PrivacyPage from './PrivacyPage'
+import PricesPage from './PricesPage'
+import { ClinicSocialLinks, CredentialsTrustSection, ReviewsTrustSection, TeamTrustSection } from './TrustSections'
 import { SiteFooter, SiteHeader } from './SiteChrome'
 import { legacyRouteTarget, parseRoute, routePath } from './routes'
 import { usePageMeta } from './usePageMeta'
 
-const treatmentImages = [
-  '/assets/dental-clinic.jpg',
-  '/assets/dental-care.jpg',
-  '/assets/dental-conversation.jpg',
-  '/assets/dental-planning.jpg',
-  '/assets/dental-clinic.jpg',
-  '/assets/dental-planning.jpg',
-  '/assets/dental-conversation.jpg',
-  '/assets/dental-consultation.jpg',
-  '/assets/dental-conversation.jpg',
-  '/assets/dental-care.jpg',
-]
+const treatmentImages = clinicProfile.media.treatments
 
-const teamProfileIcons = [Stethoscope, ShieldCheck, MessageCircle]
+const clinicThemeStyle = clinicThemeVariables(clinicProfile)
 
 function goTo(id) {
   document.querySelector(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -82,6 +78,27 @@ function formatWarranty(product, copy, locale) {
   return parts.join(' · ')
 }
 
+function ClinicalTicker({ items, copy, running, onToggle }) {
+  return (
+    <section className="clinical-motion-band" data-running={running ? 'true' : 'false'} aria-label={copy.motionLabel}>
+      <p className="sr-only">{items.join(' · ')}</p>
+      <div className="clinical-motion-window" aria-hidden="true">
+        <div className="clinical-motion-track">
+          {[0, 1].map((group) => (
+            <div className="clinical-motion-group" key={group}>
+              {items.map((item) => <span key={`${group}-${item}`}>{item}<i /></span>)}
+            </div>
+          ))}
+        </div>
+      </div>
+      <button type="button" className="clinical-motion-toggle" onClick={onToggle} aria-label={running ? copy.pauseMotion : copy.startMotion}>
+        {running ? <Pause size={15} /> : <Play size={15} />}
+        <span>{running ? copy.pauseMotion : copy.startMotion}</span>
+      </button>
+    </section>
+  )
+}
+
 function App() {
   const [route, setRoute] = useState(() => parseRoute(window.location.pathname))
   const [activeTreatment, setActiveTreatment] = useState(0)
@@ -92,19 +109,31 @@ function App() {
   const [intakeReceipt, setIntakeReceipt] = useState(null)
   const [intakeError, setIntakeError] = useState('')
   const [whatsappOpen, setWhatsappOpen] = useState(false)
+  const [motionRunning, setMotionRunning] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   const fileInput = useRef(null)
   const intakeStartedAt = useRef(Date.now())
   const { locale: lang, page } = route
   const t = content[lang]
   const care = aftercareContent[lang]
   const privacy = privacyContent[lang]
+  const prices = pricesContent[lang]
   const ui = interfaceContent[lang]
   const materials = materialsContent[lang]
-  const team = teamSectionContent[lang]
+  const experience = experienceContent[lang]
+  const diagnostics = diagnosticsContent[lang]
+
+  useEffect(() => {
+    Object.entries(clinicThemeStyle).forEach(([property, value]) => {
+      document.documentElement.style.setProperty(property, value)
+    })
+  }, [])
 
   useEffect(() => {
     const legacyTarget = legacyRouteTarget(window.location.pathname)
-    if (legacyTarget) window.history.replaceState({}, '', legacyTarget)
+    if (legacyTarget) {
+      window.history.replaceState({}, '', legacyTarget)
+      setRoute(parseRoute(new URL(legacyTarget, window.location.origin).pathname))
+    }
 
     function handlePopState() {
       setRoute(parseRoute(window.location.pathname))
@@ -138,16 +167,21 @@ function App() {
   usePageMeta({
     locale: lang,
     page,
+    noIndex: clinicProfile.templateMode,
     title: page === 'aftercare'
       ? care.metaTitle
       : page === 'privacy'
         ? privacy.metaTitle
-        : `Batumi Dental Clinic — ${t.footerLine}`,
+        : page === 'prices'
+          ? prices.metaTitle
+          : `${clinicProfile.brand.name} — ${t.footerLine}`,
     description: page === 'aftercare'
       ? care.metaDescription
       : page === 'privacy'
         ? privacy.metaDescription
-        : t.heroText,
+        : page === 'prices'
+          ? (clinicProfile.templateMode ? prices.templateMetaDescription : prices.metaDescription)
+          : t.heroText,
   })
 
   function changeLanguage(nextLanguage) {
@@ -259,6 +293,10 @@ function App() {
     return <PrivacyPage lang={lang} t={t} care={care} onLanguageChange={changeLanguage} />
   }
 
+  if (page === 'prices') {
+    return <PricesPage lang={lang} t={t} care={care} onLanguageChange={changeLanguage} />
+  }
+
   const treatment = t.treatments[activeTreatment]
   const treatmentAlts = [
     ui.photoAltClinic,
@@ -278,9 +316,10 @@ function App() {
       product.category === category.id && hasProductDetails(product)
     )),
   }))
+  const officialWhatsAppUrl = getClinicContactUrl('whatsapp')
 
   return (
-    <div className="site-shell">
+    <div className="site-shell" style={clinicThemeStyle}>
       <a className="skip-link" href="#main">{t.skip}</a>
       <SiteHeader
         lang={lang}
@@ -309,7 +348,7 @@ function App() {
           </div>
 
           <figure className="clinical-hero-media">
-            <img src="/assets/dental-conversation.jpg" alt={ui.photoAltConsultation} fetchpriority="high" />
+            <img src={clinicProfile.media.hero} alt={ui.photoAltConsultation} />
             <figcaption>
               <span>{ui.heroMediaLabel}</span>
               <small>{ui.heroMediaNote}</small>
@@ -323,6 +362,8 @@ function App() {
             ))}
           </div>
         </section>
+
+        <ClinicalTicker items={t.ticker} copy={experience} running={motionRunning} onToggle={() => setMotionRunning((value) => !value)} />
 
         <section className="audience-paths" id="patienten" aria-label={ui.audience}>
           <a href="#behandelingen">
@@ -349,12 +390,35 @@ function App() {
           </div>
           <div className="opening-gallery" aria-label={ui.galleryLabel}>
             <figure className="opening-gallery-main">
-              <img src="/assets/dental-clinic.jpg" alt={ui.photoAltClinic} loading="lazy" />
+              <img src={clinicProfile.media.clinic} alt={ui.photoAltClinic} loading="lazy" />
             </figure>
             <figure className="opening-gallery-detail">
-              <img src="/assets/dental-planning.jpg" alt={ui.photoAltPlanning} loading="lazy" />
+              <img src={clinicProfile.media.planning} alt={ui.photoAltPlanning} loading="lazy" />
               <figcaption>{ui.galleryCaption}</figcaption>
             </figure>
+          </div>
+        </section>
+
+        <div className="trust-sections">
+          <TeamTrustSection lang={lang} id="kliniek" contactHref="#contact" onContact={() => goTo('#contact')} />
+        </div>
+
+        <section className="radiology-section" id="diagnostiek" aria-labelledby="radiology-title">
+          <figure>
+            <img src={clinicProfile.media.radiology} alt={diagnostics.imageAlt} loading="lazy" />
+            <figcaption><ScanLine size={18} aria-hidden="true" />{diagnostics.eyebrow}</figcaption>
+          </figure>
+          <div className="radiology-copy">
+            <p className="eyebrow light"><span />{diagnostics.eyebrow}</p>
+            <h2 id="radiology-title">{diagnostics.title}</h2>
+            <p className="radiology-intro">{diagnostics.text}</p>
+            <dl>
+              {diagnostics.principles.map(([title, text], index) => (
+                <div key={title}><dt><span>0{index + 1}</span>{title}</dt><dd>{text}</dd></div>
+              ))}
+            </dl>
+            <p className="radiology-status"><ShieldCheck size={17} aria-hidden="true" />{diagnostics.status}</p>
+            <a className="radiology-upload" href="#contact"><Upload size={17} aria-hidden="true" /><span><small>{diagnostics.uploadEyebrow}</small>{diagnostics.uploadText}</span><strong>{diagnostics.uploadCta}<ArrowRight size={16} /></strong></a>
           </div>
         </section>
 
@@ -398,7 +462,7 @@ function App() {
                 </button>
               ))}
             </div>
-            <article className="treatment-panel" id="treatment-panel" role="tabpanel" aria-labelledby={`treatment-tab-${treatment.number}`}>
+            <article className="treatment-panel" id="treatment-panel" role="tabpanel" aria-labelledby={`treatment-tab-${treatment.number}`} key={treatment.number}>
               <div className="treatment-panel-image">
                 <img src={treatmentImages[activeTreatment]} alt={treatmentAlts[activeTreatment]} />
               </div>
@@ -410,6 +474,18 @@ function App() {
                 <button className="text-button" onClick={() => goTo('#contact')}>{t.cta}<ArrowRight size={17} /></button>
               </div>
             </article>
+          </div>
+        </section>
+
+        <section className="price-invitation section" aria-labelledby="price-invitation-title">
+          <div>
+            <p className="eyebrow">{experience.priceEyebrow}</p>
+            <h2 id="price-invitation-title">{experience.priceTitle}</h2>
+          </div>
+          <div className="price-invitation-copy">
+            <p>{clinicProfile.templateMode ? experience.priceTemplateText : experience.priceText}</p>
+            <a className="text-button" href={routePath(lang, 'prices')}>{experience.priceCta}<ArrowRight size={17} /></a>
+            <small><ShieldCheck size={15} />{experience.priceNote}</small>
           </div>
         </section>
 
@@ -473,50 +549,15 @@ function App() {
           </div>
         </section>
 
-        <section className="team-section section" id="kliniek" aria-labelledby="team-title">
-          <div className="team-heading">
-            <div>
-              <p className="eyebrow light">{team.eyebrow}</p>
-              <h2 id="team-title">{team.title}</h2>
-            </div>
-            <p>{team.intro}</p>
-          </div>
-
-          <div className="team-stage">
-            <figure className="team-stage-media">
-              <img src="/assets/dental-care.jpg" alt={ui.photoAltCare} loading="lazy" />
-              <figcaption>{team.imageNote}</figcaption>
-            </figure>
-            <div className="team-profile-list">
-              {team.profiles.map((profile, index) => {
-                const TeamIcon = teamProfileIcons[index]
-                return (
-                  <article className="team-profile-card" key={profile.number}>
-                    <div className="team-profile-mark" aria-hidden="true">
-                      <TeamIcon size={22} strokeWidth={1.6} />
-                    </div>
-                    <div>
-                      <header>
-                        <h3>{profile.role}</h3>
-                        <span>{profile.status}</span>
-                      </header>
-                      <p>{profile.text}</p>
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="team-action">
-            <div><ShieldCheck size={22} /><p>{team.verification}</p></div>
-            <button className="button button-light" onClick={() => goTo('#contact')}>{team.cta}<ArrowRight size={18} /></button>
-          </div>
-        </section>
+        <div className="trust-sections">
+          <CredentialsTrustSection lang={lang} id="kwaliteit" />
+          <ReviewsTrustSection lang={lang} id="reviews" />
+          <ClinicSocialLinks lang={lang} />
+        </div>
 
         <section className="clinic-section section" id="werkwijze" aria-labelledby="clinic-title">
           <div className="clinic-visual">
-            <img src="/assets/dental-consultation.jpg" alt={ui.photoAltConsultation} loading="lazy" />
+            <img src={clinicProfile.media.consultation} alt={ui.photoAltConsultation} loading="lazy" />
             <div className="clinic-visual-note"><Stethoscope size={19} /><span>{t.promise}</span></div>
           </div>
           <div className="clinic-content">
@@ -546,7 +587,7 @@ function App() {
         </section>
 
         <section className="care-feature" aria-labelledby="care-feature-title">
-          <div className="care-feature-image"><img src="/assets/dental-planning.jpg" alt={ui.photoAltPlanning} loading="lazy" /></div>
+          <div className="care-feature-image"><img src={clinicProfile.media.planning} alt={ui.photoAltPlanning} loading="lazy" /></div>
           <div className="care-feature-copy">
             <p className="eyebrow light">{ui.careFeatureEyebrow}</p>
             <h2 id="care-feature-title">{ui.careFeatureTitle}</h2>
@@ -557,7 +598,7 @@ function App() {
         </section>
 
         <section className="batumi-section" aria-labelledby="batumi-title">
-          <figure><img src="/assets/batumi-coast-patient.webp" alt={t.batumiImageAlt} loading="lazy" /></figure>
+          <figure><img src={clinicProfile.media.localPatient} alt={t.batumiImageAlt} loading="lazy" /></figure>
           <div>
             <p className="eyebrow light">{t.batumiEyebrow}</p>
             <h2 id="batumi-title">{t.batumiTitle}</h2>
@@ -616,7 +657,7 @@ function App() {
               ) : (
                 <div className="form-success" role="status" aria-live="polite">
                   <CircleCheck size={42} />
-                  <p className="eyebrow">Batumi Dental Clinic</p>
+                  <p className="eyebrow">{clinicProfile.brand.name}</p>
                   <h3>{intakeState === 'deleted' ? ui.intakeDeletedTitle : intakeReceipt?.kind === 'clinical' ? ui.uploadSuccessTitle : ui.appointmentSuccessTitle}</h3>
                   <p>{intakeState === 'deleted' ? ui.intakeDeletedText : intakeReceipt?.kind === 'clinical' ? ui.uploadSuccessText : ui.appointmentSuccessText}</p>
                   {intakeReceipt && (
@@ -636,8 +677,12 @@ function App() {
               <p className="eyebrow light">WhatsApp</p>
               <h3>{ui.whatsappTitle}</h3>
               <p>{ui.whatsappText}</p>
-              <button className="button button-light" type="button" onClick={() => setWhatsappOpen((open) => !open)} aria-expanded={whatsappOpen}>{ui.whatsappAction}<ArrowRight size={17} /></button>
-              {whatsappOpen && <div className="whatsapp-status" role="status"><ShieldCheck size={18} /><span>{ui.whatsappStatus}</span></div>}
+              {officialWhatsAppUrl ? (
+                <a className="button button-light" href={officialWhatsAppUrl} target="_blank" rel="noreferrer">{ui.whatsappAction}<ArrowRight size={17} /></a>
+              ) : (
+                <button className="button button-light" type="button" onClick={() => setWhatsappOpen((open) => !open)} aria-expanded={whatsappOpen}>{ui.whatsappAction}<ArrowRight size={17} /></button>
+              )}
+              {!officialWhatsAppUrl && whatsappOpen && <div className="whatsapp-status" role="status"><ShieldCheck size={18} /><span>{ui.whatsappStatus}</span></div>}
               <small>{care.firstWeek.channelNote}</small>
             </aside>
           </div>
@@ -662,7 +707,7 @@ function App() {
       </main>
 
       <div className="mobile-action-bar" aria-label={t.cta}>
-        <a href="#whatsapp"><MessageCircle size={18} />{ui.whatsapp}</a>
+        <a href={officialWhatsAppUrl || '#whatsapp'} target={officialWhatsAppUrl ? '_blank' : undefined} rel={officialWhatsAppUrl ? 'noreferrer' : undefined}><MessageCircle size={18} />{ui.whatsapp}</a>
         <a href="#contact"><CalendarDays size={18} />{ui.appointment}</a>
       </div>
       <SiteFooter lang={lang} page="home" t={t} care={care} onLanguageChange={changeLanguage} />
