@@ -58,14 +58,30 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
   useEffect(() => {
     if (!menuOpen) return undefined
 
-    const focusable = [...mobileNav.current.querySelectorAll('a[href], button:not([disabled])')]
-    focusable[0]?.focus()
+    const navigationControls = [...mobileNav.current.querySelectorAll('a[href], button:not([disabled])')]
+    const focusable = [menuButton.current, ...navigationControls].filter(Boolean)
+    const backgroundRegions = [...document.querySelectorAll('main, .mobile-action-bar, footer')]
+    const previousBackgroundState = backgroundRegions.map((region) => ({
+      region,
+      ariaHidden: region.getAttribute('aria-hidden'),
+      inert: region.hasAttribute('inert'),
+    }))
+
+    backgroundRegions.forEach((region) => {
+      region.inert = true
+      region.setAttribute('inert', '')
+      region.setAttribute('aria-hidden', 'true')
+    })
+    const focusElement = (element) => {
+      if (element instanceof HTMLElement) HTMLElement.prototype.focus.call(element)
+    }
+    const focusFrame = window.requestAnimationFrame(() => focusElement(menuButton.current))
 
     function keepFocusInside(event) {
       if (event.key === 'Escape') {
         event.preventDefault()
         closeMenu()
-        requestAnimationFrame(() => menuButton.current?.focus())
+        requestAnimationFrame(() => focusElement(menuButton.current))
         return
       }
       if (event.key !== 'Tab' || focusable.length === 0) return
@@ -74,15 +90,25 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
       const last = focusable[focusable.length - 1]
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault()
-        last.focus()
+        focusElement(last)
       } else if (!event.shiftKey && document.activeElement === last) {
         event.preventDefault()
-        first.focus()
+        focusElement(first)
       }
     }
 
     document.addEventListener('keydown', keepFocusInside)
-    return () => document.removeEventListener('keydown', keepFocusInside)
+    return () => {
+      window.cancelAnimationFrame(focusFrame)
+      document.removeEventListener('keydown', keepFocusInside)
+      previousBackgroundState.forEach(({ region, ariaHidden, inert }) => {
+        region.inert = inert
+        if (inert) region.setAttribute('inert', '')
+        else region.removeAttribute('inert')
+        if (ariaHidden === null) region.removeAttribute('aria-hidden')
+        else region.setAttribute('aria-hidden', ariaHidden)
+      })
+    }
   }, [menuOpen])
 
   useEffect(() => {
@@ -312,7 +338,7 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
             {!menuOpen && <span>{t.menu}</span>}
           </button>
         </div>
-        <nav ref={mobileNav} id="mobile-menu" className={`mobile-nav ${menuOpen ? 'open' : ''}`} aria-label={t.mobileNavLabel}>
+        <nav ref={mobileNav} id="mobile-menu" className={`mobile-nav ${menuOpen ? 'open' : ''}`} aria-label={t.mobileNavLabel} aria-hidden={!menuOpen}>
           <div className="mobile-nav-inner">
             <div className="mobile-services-disclosure">
               <button type="button" className="mobile-service-toggle" aria-expanded={mobileServicesOpen} aria-controls="mobile-service-list" onClick={() => setMobileServicesOpen((open) => !open)}>
