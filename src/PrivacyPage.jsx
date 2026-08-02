@@ -26,8 +26,8 @@ export default function PrivacyPage({ lang, t, care, onLanguageChange }) {
         </section>
 
         <section className="privacy-sections section" aria-label={privacy.eyebrow}>
-          {privacy.sections.map(([title, text], index) => (
-            <article key={title}><span>{String(index + 1).padStart(2, '0')}</span><h2>{title}</h2><p>{text}</p></article>
+          {privacy.sections.map(([title, text]) => (
+            <article key={title}><h2>{title}</h2><p>{text}</p></article>
           ))}
         </section>
 

@@ -123,7 +123,7 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
                     <h2>{ui.serviceGroups[groupIndex]}</h2>
                     {indexes.map((index) => t.treatments[index] && (
                       <a href={page === 'home' ? `#behandeling-${t.treatments[index].number}` : `${homePath}#behandeling-${t.treatments[index].number}`} onClick={(event) => selectService(event, index)} key={t.treatments[index].name}>
-                        <span>{t.treatments[index].number}</span>{t.treatments[index].name}
+                        {t.treatments[index].name}
                       </a>
                     ))}
                   </section>
@@ -161,21 +161,21 @@ export function SiteHeader({ lang, page, t, care, onLanguageChange, onServiceSel
           <div className="mobile-nav-inner">
             <div className="mobile-services-disclosure">
               <button type="button" className="mobile-service-toggle" aria-expanded={mobileServicesOpen} onClick={() => setMobileServicesOpen((open) => !open)}>
-                <span>01</span><strong>{homeNav[0][0]}</strong><ChevronDown size={19} />
+                <strong>{homeNav[0][0]}</strong><ChevronDown size={19} />
               </button>
               <div className={`mobile-service-list ${mobileServicesOpen ? 'open' : ''}`}>
                 {t.treatments.map((treatment, index) => (
                   <a href={page === 'home' ? `#behandeling-${treatment.number}` : `${homePath}#behandeling-${treatment.number}`} onClick={(event) => selectService(event, index)} key={treatment.name}>
-                    <span>{treatment.number}</span>{treatment.name}
+                    {treatment.name}
                   </a>
                 ))}
               </div>
             </div>
-            {homeNav.slice(1).map(([label, href], index) => (
-              <a onClick={closeMenu} href={href} key={href}><span>0{index + 2}</span>{label}<ArrowRight size={19} /></a>
+            {homeNav.slice(1).map(([label, href]) => (
+              <a onClick={closeMenu} href={href} key={href}>{label}<ArrowRight size={19} /></a>
             ))}
             <a onClick={closeMenu} href={carePath} aria-current={page === 'aftercare' ? 'page' : undefined}>
-              <span>0{homeNav.length + 1}</span>{care.navLabel}<ArrowRight size={19} />
+              {care.navLabel}<ArrowRight size={19} />
             </a>
             <div className="mobile-nav-actions">
               <a className="button button-light" onClick={closeMenu} href={contactPath}><CalendarDays size={18} />{ui.appointment}</a>

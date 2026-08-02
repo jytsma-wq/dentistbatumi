@@ -52,8 +52,8 @@ export default function AftercarePage({ lang, t, care, onLanguageChange }) {
         </section>
 
         <div className="care-assurance" aria-label={care.assuranceLabel}>
-          {care.assurances.map(([title, text], index) => (
-            <div key={title}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{title}</strong><small>{text}</small></div></div>
+          {care.assurances.map(([title, text]) => (
+            <div key={title}><div><strong>{title}</strong><small>{text}</small></div></div>
           ))}
         </div>
 
@@ -116,9 +116,8 @@ export default function AftercarePage({ lang, t, care, onLanguageChange }) {
             <p>{care.certainty.intro}</p>
           </div>
           <div className="certainty-list">
-            {care.certainty.items.map((item, index) => (
+            {care.certainty.items.map((item) => (
               <article key={item.title}>
-                <span>{String(index + 1).padStart(2, '0')}</span>
                 <div><small>{item.label}</small><h3>{item.title}</h3><p>{item.text}</p></div>
               </article>
             ))}

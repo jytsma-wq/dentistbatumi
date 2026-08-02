@@ -296,7 +296,7 @@ function App() {
 
         <section className="care-principles" aria-label={ui.principlesLabel}>
           <p>{ui.principlesLabel}</p>
-          <ul>{ui.principles.map((principle, index) => <li key={principle}><span>{String(index + 1).padStart(2, '0')}</span>{principle}</li>)}</ul>
+          <ul>{ui.principles.map((principle) => <li key={principle}>{principle}</li>)}</ul>
         </section>
 
         <section className="opening-statement section" aria-labelledby="intro-title">
@@ -351,7 +351,6 @@ function App() {
                     requestAnimationFrame(() => document.getElementById(`treatment-tab-${t.treatments[nextIndex].number}`)?.focus())
                   }}
                 >
-                  <span>{item.number}</span>
                   <strong>{item.name}</strong>
                   <small>{item.time}</small>
                   <ArrowRight size={18} />
@@ -393,7 +392,6 @@ function App() {
                 return (
                   <article className="team-profile-card" key={profile.number}>
                     <div className="team-profile-mark" aria-hidden="true">
-                      <span>{profile.number}</span>
                       <TeamIcon size={22} strokeWidth={1.6} />
                     </div>
                     <div>
@@ -426,7 +424,7 @@ function App() {
             <p className="clinic-lede">{t.clinicText}</p>
             <div className="clinic-process">
               {t.clinicCards.map(([number, title, text]) => (
-                <article key={number}><span>{number}</span><div><h3>{title}</h3><p>{text}</p></div></article>
+                <article key={number}><div><h3>{title}</h3><p>{text}</p></div></article>
               ))}
             </div>
           </div>
@@ -438,9 +436,8 @@ function App() {
             <p>{t.stayText}</p>
           </div>
           <div className="stay-timeline">
-            {t.days.map(([label, text], index) => (
+            {t.days.map(([label, text]) => (
               <article key={label}>
-                <span>{String(index + 1).padStart(2, '0')}</span>
                 <div><h3>{label}</h3><p>{text}</p></div>
               </article>
             ))}
@@ -553,7 +550,7 @@ function App() {
               return (
                 <article className={isOpen ? 'open' : ''} key={question}>
                   <button type="button" onClick={() => setOpenFaq(isOpen ? -1 : index)} aria-expanded={isOpen} aria-controls={`faq-answer-${index}`}>
-                    <span>{String(index + 1).padStart(2, '0')}</span><strong>{question}</strong><ChevronDown size={21} />
+                    <strong>{question}</strong><ChevronDown size={21} />
                   </button>
                   <div id={`faq-answer-${index}`} className="faq-answer" hidden={!isOpen}><p>{answer}</p></div>
                 </article>
