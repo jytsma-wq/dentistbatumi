@@ -3,13 +3,18 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "prebuild": "node scripts/clean-dist.mjs",
-    "build": "vite build",
-    "postbuild": "node scripts/stage-hosting.mjs",
+    "build": "vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test",
+    "test:unit": "node --test tests/content.test.mjs tests/locale-quality.test.mjs tests/private-intakes.test.mjs tests/routes-hardening.test.mjs",
+    "test:prerender": "node --test tests/prerendered-routes.test.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

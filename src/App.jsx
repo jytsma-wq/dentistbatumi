@@ -23,6 +23,7 @@ import {
 import { content, languages } from './content'
 import { homeMetaDescriptions } from './home-meta'
 import { aftercareContent } from './aftercare-content'
+import { pushBrowserUrl, replaceBrowserUrl } from './browser-history'
 import {
   getVisibleProductDocuments,
   getVisibleProductFacts,
@@ -32,6 +33,7 @@ import {
   treatmentProductCatalog,
 } from './clinic-products'
 import { interfaceContent } from './interface-content'
+import { countryCodes, formatCountryName } from './locale-formatting'
 import { clinicImageProps, clinicProfile, clinicThemeVariables, getClinicContactUrl } from './clinic-profile'
 import { experienceContent } from './experience-content'
 import { diagnosticsContent } from './diagnostics-content'
@@ -64,12 +66,7 @@ function goTo(id) {
 function formatProductOrigin(origin, locale) {
   const code = String(origin || '').trim().toUpperCase()
   if (!/^[A-Z]{2}$/u.test(code)) return origin
-
-  try {
-    return new Intl.DisplayNames([locale], { type: 'region' }).of(code) || code
-  } catch {
-    return code
-  }
+  return formatCountryName(code, locale)
 }
 
 function formatWarranty(product, copy, locale) {
@@ -111,8 +108,22 @@ function resolveBrowserRoute(pathname, hash = '') {
   return { ...parseRoute(pathname), notFound: !isSupportedRoutePath(pathname), hash }
 }
 
-function App() {
-  const [route, setRoute] = useState(() => resolveBrowserRoute(window.location.pathname, window.location.hash))
+function resolveInitialRoute(initialRoute) {
+  if (initialRoute) {
+    return {
+      ...initialRoute,
+      notFound: Boolean(initialRoute.notFound),
+      hash: initialRoute.hash || '',
+    }
+  }
+  if (typeof window !== 'undefined') {
+    return resolveBrowserRoute(window.location.pathname, window.location.hash)
+  }
+  return { locale: 'nl', page: 'home', notFound: false, hash: '' }
+}
+
+function App({ initialRoute = null }) {
+  const [route, setRoute] = useState(() => resolveInitialRoute(initialRoute))
   const [activeTreatment, setActiveTreatment] = useState(0)
   const [openFaq, setOpenFaq] = useState(0)
   const [submitted, setSubmitted] = useState(false)
@@ -121,7 +132,7 @@ function App() {
   const [intakeReceipt, setIntakeReceipt] = useState(null)
   const [intakeError, setIntakeError] = useState('')
   const [whatsappOpen, setWhatsappOpen] = useState(false)
-  const [motionRunning, setMotionRunning] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const [motionRunning, setMotionRunning] = useState(false)
   const successPanel = useRef(null)
   const intakeStartedAt = useRef(Date.now())
   const { locale: lang, page, notFound, hash } = route
@@ -141,6 +152,10 @@ function App() {
   }, [])
 
   useEffect(() => {
+    setMotionRunning(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  }, [])
+
+  useEffect(() => {
     if (!submitted || !['success', 'deleted'].includes(intakeState)) return
     requestAnimationFrame(() => successPanel.current?.focus())
   }, [submitted, intakeState])
@@ -148,8 +163,10 @@ function App() {
   useEffect(() => {
     const legacyTarget = legacyRouteTarget(window.location.pathname, window.location.hash)
     if (legacyTarget) {
-      window.history.replaceState({}, '', legacyTarget)
       const targetUrl = new URL(legacyTarget, window.location.origin)
+      targetUrl.search = window.location.search
+      const relativeTarget = `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`
+      replaceBrowserUrl(relativeTarget)
       setRoute(resolveBrowserRoute(targetUrl.pathname, targetUrl.hash))
     }
 
@@ -210,6 +227,7 @@ function App() {
     page,
     noIndex: clinicProfile.templateMode || notFound,
     omitCanonical: notFound,
+    imageAlt: ui.photoAltClinic,
     title: notFound
       ? notFoundContent[lang].metaTitle
       : page === 'aftercare'
@@ -232,15 +250,16 @@ function App() {
 
   function changeLanguage(nextLanguage) {
     const nextPage = notFound ? 'home' : page
+    const nextSearch = window.location.search
     const nextHash = notFound ? '' : window.location.hash
-    window.history.pushState({}, '', `${routePath(nextLanguage, nextPage)}${nextHash}`)
+    pushBrowserUrl(`${routePath(nextLanguage, nextPage)}${nextSearch}${nextHash}`)
     setRoute({ locale: nextLanguage, page: nextPage, notFound: false, hash: nextHash })
   }
 
   function chooseTreatment(index) {
     const treatmentHash = `#behandeling-${t.treatments[index].number}`
     setActiveTreatment(index)
-    window.history.replaceState({}, '', `${window.location.pathname}${treatmentHash}`)
+    replaceBrowserUrl(`${window.location.pathname}${window.location.search}${treatmentHash}`)
     setRoute((current) => current.hash === treatmentHash ? current : { ...current, hash: treatmentHash })
   }
 
@@ -582,7 +601,7 @@ function App() {
                       value: fact.key === 'origin' ? formatProductOrigin(fact.value, lang) : fact.value,
                     }))
                     const warranty = hasVisibleWarranty(product) ? formatWarranty(product, materials, lang) : ''
-                    const documents = getVisibleProductDocuments(product)
+                    const documents = getVisibleProductDocuments(product, lang)
                     const productTitle = product.name || product.brand || product.system
 
                     return (
@@ -697,7 +716,7 @@ function App() {
                   <div className="form-grid">
                     <label><span>{t.fields.name}</span><input name="name" autoComplete="name" maxLength="90" required /></label>
                     <label><span>{t.fields.email}</span><input name="email" type="email" autoComplete="email" maxLength="180" required /></label>
-                    <label><span>{t.fields.country}</span><select name="country" defaultValue={lang === 'ka' ? 'GE' : 'NL'}><option value="GE">საქართველო</option><option value="NL">Nederland</option><option value="BE">België / Belgique</option><option value="DE">Deutschland</option><option value="FR">France</option><option value="CH">Schweiz / Suisse</option><option value="LU">Luxembourg</option><option value="IT">Italia</option><option value="ES">España</option></select></label>
+                    <label><span>{t.fields.country}</span><select name="country" defaultValue="" required><option value="" disabled>{t.fields.countryPlaceholder}</option>{countryCodes.map((code) => <option key={code} value={code}>{formatCountryName(code, lang)}</option>)}<option value="OTHER">{ui.otherCountry}</option></select></label>
                     <label><span>{t.fields.language}</span><select name="language" value={lang} onChange={(event) => changeLanguage(event.target.value)}>{languages.map((language) => <option key={language.code} value={language.code}>{language.label}</option>)}</select></label>
                   </div>
                   <label className="full-field"><span>{t.fields.wish}</span><textarea name="wish" rows="4" maxLength="800" placeholder={t.fields.placeholder} /></label>

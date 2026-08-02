@@ -12,6 +12,8 @@ const workerConfig = {
   assets: {
     binding: 'ASSETS',
     run_worker_first: true,
+    html_handling: 'drop-trailing-slash',
+    not_found_handling: 'none',
   },
   r2_buckets: r2Binding
     ? [{ binding: r2Binding, bucket_name: 'site-creator-r2' }]

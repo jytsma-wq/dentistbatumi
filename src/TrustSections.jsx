@@ -37,7 +37,7 @@ function localizedList(values, locale) {
   const localizedValues = Array.isArray(values)
     ? values
     : values && typeof values === 'object'
-      ? values[locale] || values.en || values.nl || []
+      ? values[locale] || []
       : values
         ? [values]
         : []
@@ -163,7 +163,7 @@ export function TeamTrustSection({
   contactHref = '#contact',
   onContact,
 }) {
-  const copy = (trustContent[lang] || trustContent.en).team
+  const copy = trustContent[lang].team
   const dentists = getPublishedDentists(data, lang)
 
   return (
@@ -189,7 +189,7 @@ export function TeamTrustSection({
         ) : (
           <div className="trust-team-empty" data-template-state="awaiting-verified-team">
             <div className="trust-empty-monogram" aria-hidden="true">
-              <span>TEAM</span>
+              <span>{copy.emptyMonogram}</span>
               <i />
             </div>
             <div className="trust-empty-copy">
@@ -212,7 +212,7 @@ export function TeamTrustSection({
 }
 
 export function CredentialsTrustSection({ lang = 'en', data = clinicTrustData, id = 'quality' }) {
-  const copy = (trustContent[lang] || trustContent.en).credentials
+  const copy = trustContent[lang].credentials
   const credentials = getPublishedClinicCredentials(data, lang)
 
   return (
@@ -273,7 +273,7 @@ export function CredentialsTrustSection({ lang = 'en', data = clinicTrustData, i
 }
 
 export function ReviewsTrustSection({ lang = 'en', data = clinicTrustData, id = 'reviews' }) {
-  const copy = (trustContent[lang] || trustContent.en).reviews
+  const copy = trustContent[lang].reviews
   const reviews = getPublishedReviews(data, lang)
 
   return (
@@ -311,7 +311,7 @@ export function ReviewsTrustSection({ lang = 'en', data = clinicTrustData, id = 
 }
 
 export function ClinicSocialLinks({ lang = 'en', data = clinicTrustData, compact = false }) {
-  const copy = (trustContent[lang] || trustContent.en).socials
+  const copy = trustContent[lang].socials
   const socials = getPublishedSocials(data)
   const networks = [
     { key: 'facebook', label: copy.facebook, Icon: Facebook },

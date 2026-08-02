@@ -2,6 +2,7 @@ import { aftercareContent } from '../src/aftercare-content.js'
 import { clinicProfile } from '../src/clinic-profile.js'
 import { content } from '../src/content.js'
 import { homeMetaDescriptions } from '../src/home-meta.js'
+import { interfaceContent } from '../src/interface-content.js'
 import { pricesContent } from '../src/prices-content.js'
 import { privacyContent } from '../src/privacy-content.js'
 import { notFoundContent } from '../src/not-found-content.js'
@@ -68,6 +69,7 @@ export function localizeHtmlShell(html, { locale, page, notFound = false }) {
   const origin = clinicProfile.site.origin
   const canonical = `${origin}${routePath(locale, page)}`
   const socialImage = `${origin}${clinicProfile.brand.socialAsset}`
+  const socialImageAlt = interfaceContent[locale].photoAltClinic
   const robots = clinicProfile.templateMode || notFound ? 'noindex, nofollow' : 'index, follow'
   const alternates = [
     ...supportedLocales.map((alternateLocale) => (
@@ -86,9 +88,11 @@ export function localizeHtmlShell(html, { locale, page, notFound = false }) {
   localized = upsertMeta(localized, 'property', 'og:description', metadata.description)
   if (!notFound) localized = upsertMeta(localized, 'property', 'og:url', canonical)
   localized = upsertMeta(localized, 'property', 'og:image', socialImage)
+  localized = upsertMeta(localized, 'property', 'og:image:alt', socialImageAlt)
   localized = upsertMeta(localized, 'name', 'twitter:title', metadata.title)
   localized = upsertMeta(localized, 'name', 'twitter:description', metadata.description)
   localized = upsertMeta(localized, 'name', 'twitter:image', socialImage)
+  localized = upsertMeta(localized, 'name', 'twitter:image:alt', socialImageAlt)
   localized = removeGeneratedLinks(localized)
 
   if (notFound) return localized
