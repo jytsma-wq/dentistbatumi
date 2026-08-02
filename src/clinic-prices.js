@@ -78,7 +78,7 @@ export function localizedValue(value, locale, fallback = '') {
   if (typeof value === 'string') return value.trim()
   if (!value || typeof value !== 'object' || Array.isArray(value)) return fallback
 
-  const candidate = value[locale] ?? value.en ?? value.nl ?? fallback
+  const candidate = value[locale] ?? fallback
   return typeof candidate === 'string' ? candidate.trim() : fallback
 }
 

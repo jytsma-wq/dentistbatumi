@@ -8,6 +8,7 @@
  *
  * `origin` uses a two-letter country code, for example DE, CH or IT.
  * Documentation URLs must start with https://.
+ * Documentation titles are locale objects, for example { en: 'Product sheet', fr: 'Fiche produit' }.
  */
 
 export const treatmentProductCatalog = {
@@ -96,8 +97,15 @@ export function getVisibleProductFacts(product) {
     .map((key) => ({ key, value: product[key] }))
 }
 
-export function getVisibleProductDocuments(product) {
-  return (product.documentation || []).filter((document) => isSafeProductUrl(document?.url))
+export function getVisibleProductDocuments(product, locale = 'en') {
+  return (product.documentation || [])
+    .filter((document) => isSafeProductUrl(document?.url))
+    .map((document) => ({
+      ...document,
+      title: document?.title && typeof document.title === 'object' && !Array.isArray(document.title)
+        ? String(document.title[locale] || '').trim()
+        : '',
+    }))
 }
 
 export function hasVisibleWarranty(product) {

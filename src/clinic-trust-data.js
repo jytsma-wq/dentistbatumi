@@ -1,24 +1,16 @@
-const supportedLocales = ['nl', 'de', 'fr', 'lb', 'en', 'ka']
-
 function cleanText(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
 /**
  * Resolve a field that may be a plain string or an object keyed by locale.
- * English and Dutch are conservative editorial fallbacks for clinic-entered data.
+ * Locale-keyed proof fails closed when the requested translation is absent, so
+ * verified clinic content can never leak into a page in another language.
  */
 export function localizeTrustField(value, locale = 'en') {
   if (typeof value === 'string') return value.trim()
   if (!value || typeof value !== 'object') return ''
-
-  const preferredLocales = [locale, 'en', 'nl', ...supportedLocales]
-  for (const code of preferredLocales) {
-    const localizedValue = cleanText(value[code])
-    if (localizedValue) return localizedValue
-  }
-
-  return ''
+  return cleanText(value[locale])
 }
 
 /**

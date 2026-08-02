@@ -1,6 +1,14 @@
 import { handlePrivateIntakeRequest } from '../server/private-intakes.js'
 import { localizeHtmlShell, withHtmlSecurityHeaders } from '../server/page-shell.js'
-import { isSupportedRoutePath, legacyRouteTarget, parseRoute } from '../src/routes.js'
+import { notFoundContent } from '../src/not-found-content.js'
+import { isSupportedRoutePath, legacyRouteTarget, normalizePathname, parseRoute, routePath } from '../src/routes.js'
+
+function permanentRedirect(requestUrl, target) {
+  const redirectUrl = new URL(target, requestUrl)
+  redirectUrl.search = requestUrl.search
+  if (!redirectUrl.hash) redirectUrl.hash = requestUrl.hash
+  return Response.redirect(redirectUrl, 308)
+}
 
 export default {
   async fetch(request, env) {
@@ -16,12 +24,17 @@ export default {
 
     const isDocumentMethod = request.method === 'GET' || request.method === 'HEAD'
     if (isDocumentMethod) {
+      const canonicalPathname = normalizePathname(requestUrl.pathname)
+      if (canonicalPathname !== requestUrl.pathname) {
+        return permanentRedirect(requestUrl, canonicalPathname)
+      }
+
       if (requestUrl.pathname === '/') {
-        return Response.redirect(new URL('/nl', requestUrl), 308)
+        return permanentRedirect(requestUrl, '/nl')
       }
 
       const legacyTarget = legacyRouteTarget(requestUrl.pathname, requestUrl.hash)
-      if (legacyTarget) return Response.redirect(new URL(legacyTarget, requestUrl), 308)
+      if (legacyTarget) return permanentRedirect(requestUrl, legacyTarget)
 
       const isSupportedRoute = isSupportedRoutePath(requestUrl.pathname)
       const acceptsHtml = request.headers.get('accept')?.toLowerCase().includes('text/html') ?? false
@@ -29,13 +42,21 @@ export default {
 
       const route = parseRoute(requestUrl.pathname)
       const fallbackUrl = new URL(request.url)
-      fallbackUrl.pathname = '/'
+      fallbackUrl.pathname = isSupportedRoute ? routePath(route.locale, route.page) : '/'
       fallbackUrl.search = ''
       fallbackUrl.hash = ''
-      const shell = await env.ASSETS.fetch(new Request(fallbackUrl, {
+      let shell = await env.ASSETS.fetch(new Request(fallbackUrl, {
         method: 'GET',
         headers: { Accept: 'text/html' },
       }))
+      const isLocalDevelopment = ['127.0.0.1', 'localhost'].includes(requestUrl.hostname)
+      if (isSupportedRoute && !shell.ok && isLocalDevelopment) {
+        fallbackUrl.pathname = '/'
+        shell = await env.ASSETS.fetch(new Request(fallbackUrl, {
+          method: 'GET',
+          headers: { Accept: 'text/html' },
+        }))
+      }
       const shellContentType = shell.headers.get('content-type')?.toLowerCase() ?? ''
       if (!shell.ok) {
         if (request.method === 'GET') return shell
@@ -46,11 +67,12 @@ export default {
         })
       }
       if (!shellContentType.includes('text/html')) {
-        return new Response(request.method === 'HEAD' ? null : 'Website shell unavailable.', {
+        return new Response(request.method === 'HEAD' ? null : notFoundContent[route.locale].shellUnavailable, {
           status: 502,
           headers: {
             'Cache-Control': 'no-store, max-age=0',
             'Content-Type': 'text/plain; charset=utf-8',
+            'Content-Language': route.locale,
             'X-Content-Type-Options': 'nosniff',
           },
         })
