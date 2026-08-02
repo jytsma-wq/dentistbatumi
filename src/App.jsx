@@ -157,11 +157,23 @@ function App() {
 
     if (treatmentIndex >= 0) setActiveTreatment(treatmentIndex)
 
-    const timer = window.setTimeout(() => {
+    let cancelled = false
+    let settleFrame = 0
+    const scrollToTarget = () => {
+      if (cancelled) return
       document.querySelector(target)?.scrollIntoView({ block: 'start' })
-    }, 0)
+    }
+    const timer = window.setTimeout(scrollToTarget, 0)
 
-    return () => window.clearTimeout(timer)
+    document.fonts?.ready.then(() => {
+      if (!cancelled) settleFrame = window.requestAnimationFrame(scrollToTarget)
+    })
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+      window.cancelAnimationFrame(settleFrame)
+    }
   }, [lang, page, t.treatments])
 
   usePageMeta({
