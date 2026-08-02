@@ -1,6 +1,10 @@
 export const supportedLocales = ['nl', 'de', 'fr', 'lb', 'en', 'ka']
 export const supportedPages = ['home', 'aftercare', 'privacy', 'prices']
 
+const localeAliases = {
+  lu: 'lb',
+}
+
 const legacySectionMap = {
   treatments: 'behandelingen',
   treatment: 'behandelingen',
@@ -21,8 +25,9 @@ const legacySectionMap = {
 
 export function parseRoute(pathname = '/') {
   const segments = pathname.split('/').filter(Boolean)
-  const hasSupportedLocale = supportedLocales.includes(segments[0])
-  const locale = hasSupportedLocale ? segments[0] : 'nl'
+  const requestedLocale = localeAliases[segments[0]] || segments[0]
+  const hasSupportedLocale = supportedLocales.includes(requestedLocale)
+  const locale = hasSupportedLocale ? requestedLocale : 'nl'
   const requestedPage = segments[1]
   const page = hasSupportedLocale && ['aftercare', 'privacy', 'prices'].includes(requestedPage)
     ? requestedPage
@@ -36,12 +41,22 @@ export function routePath(locale, page = 'home') {
   return ['aftercare', 'privacy', 'prices'].includes(page) ? `/${safeLocale}/${page}` : `/${safeLocale}`
 }
 
-export function legacyRouteTarget(pathname = '/') {
+export function legacyRouteTarget(pathname = '/', hash = '') {
   const segments = pathname.split('/').filter(Boolean)
-  if (!supportedLocales.includes(segments[0]) || ['aftercare', 'privacy', 'prices'].includes(segments[1])) return null
+  const requestedLocale = segments[0]
+  const locale = localeAliases[requestedLocale] || requestedLocale
+  const isLocaleAlias = locale !== requestedLocale
+  if (!supportedLocales.includes(locale)) return null
 
-  if (['fees', 'fee-list', 'pricing', 'pricelist'].includes(segments[1])) return `/${segments[0]}/prices`
+  if (['aftercare', 'privacy', 'prices'].includes(segments[1])) {
+    return isLocaleAlias ? `/${locale}/${segments[1]}` : null
+  }
+
+  if (['fees', 'fee-list', 'pricing', 'pricelist'].includes(segments[1])) return `/${locale}/prices`
 
   const section = legacySectionMap[segments[1]]
-  return section ? `/${segments[0]}#${section}` : null
+  if (section) return `/${locale}#${section}`
+
+  const safeHash = hash.startsWith('#') ? hash : ''
+  return isLocaleAlias ? `/${locale}${safeHash}` : null
 }

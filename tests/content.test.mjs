@@ -158,6 +158,8 @@ test('localized routes resolve and preserve the requested page', () => {
   assert.deepEqual(parseRoute('/ka'), { locale: 'ka', page: 'home' })
   assert.deepEqual(parseRoute('/fr/privacy'), { locale: 'fr', page: 'privacy' })
   assert.deepEqual(parseRoute('/ka/prices'), { locale: 'ka', page: 'prices' })
+  assert.deepEqual(parseRoute('/lu'), { locale: 'lb', page: 'home' })
+  assert.deepEqual(parseRoute('/lu/aftercare'), { locale: 'lb', page: 'aftercare' })
   assert.deepEqual(parseRoute('/unsupported/aftercare'), { locale: 'nl', page: 'home' })
   assert.equal(routePath('de', 'aftercare'), '/de/aftercare')
   assert.equal(routePath('ka', 'privacy'), '/ka/privacy')
@@ -174,6 +176,10 @@ test('localized routes resolve and preserve the requested page', () => {
   assert.equal(legacyRouteTarget('/en/privacy'), null)
   assert.equal(legacyRouteTarget('/nl/prices'), null)
   assert.equal(legacyRouteTarget('/de/fees'), '/de/prices')
+  assert.equal(legacyRouteTarget('/lu'), '/lb')
+  assert.equal(legacyRouteTarget('/lu', '#diagnostiek'), '/lb#diagnostiek')
+  assert.equal(legacyRouteTarget('/lu/prices'), '/lb/prices')
+  assert.equal(legacyRouteTarget('/lu/treatments'), '/lb#behandelingen')
 })
 
 test('aftercare copy avoids invented emergency contacts or insurance prices', () => {

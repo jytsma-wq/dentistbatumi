@@ -129,7 +129,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const legacyTarget = legacyRouteTarget(window.location.pathname)
+    const legacyTarget = legacyRouteTarget(window.location.pathname, window.location.hash)
     if (legacyTarget) {
       window.history.replaceState({}, '', legacyTarget)
       setRoute(parseRoute(new URL(legacyTarget, window.location.origin).pathname))
